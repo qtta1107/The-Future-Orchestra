@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Future Orchestra - Career Analyst Edition</title>
+    <title>The Future Orchestra - Vietnam Education Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Montserrat:wght@200;300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -42,7 +43,6 @@
         @keyframes neonPulse { 0% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 5px var(--glow-color); border-color: var(--active-color); } 50% { box-shadow: 0 0 30px var(--glow-color), 0 0 50px var(--glow-color), inset 0 0 10px var(--active-color); border-color: #fff; } 100% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 5px var(--glow-color); border-color: var(--active-color); } }
         @keyframes beat-pulse { 0% { transform: scale(1); filter: brightness(1); } 5% { transform: scale(1.02); filter: brightness(1.2); } 100% { transform: scale(1); filter: brightness(1); } }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
         /* --- ENVIRONMENT --- */
         .stage-container { position: fixed; inset: 0; z-index: 0; background: #000; }
@@ -232,8 +232,7 @@
         .career-group { background: rgba(0,0,0,0.3); border: 1px solid #333; border-radius: 12px; padding: 15px; text-align: left; transition: transform 0.3s; }
         .career-group-header { font-size: 1rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; }
         .career-list-items { display: flex; flex-wrap: wrap; gap: 8px; }
-        .career-tag { font-size: 0.8rem; color: #ccc; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s; }
-        .career-tag:hover { background: var(--gold); color: #000; transform: translateY(-2px); box-shadow: 0 0 10px var(--gold); }
+        .career-tag { font-size: 0.8rem; color: #ccc; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
         .university-list { display: block; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; }
         .university-item { display: inline-block; font-size: 0.75rem; color: var(--gold-dim); margin-right: 10px; margin-bottom: 5px; }
         .university-item i { margin-right: 4px; }
@@ -241,39 +240,6 @@
         body.playing #result-btn-container { opacity: 1; }
         .show-result-btn { background: rgba(0,0,0,0.6); border: 1px solid var(--gold); color: var(--gold); padding: 10px 25px; border-radius: 30px; font-size: 0.7rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s; }
         .show-result-btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 20px var(--gold); }
-
-        /* --- CAREER DETAIL MODAL --- */
-        .career-detail-modal {
-            position: fixed; inset: 0; z-index: 100;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none; transition: 0.3s;
-        }
-        .career-detail-modal.active { opacity: 1; pointer-events: auto; }
-        
-        .modal-card {
-            background: #111; border: 1px solid var(--gold); border-radius: 15px;
-            width: 90%; max-width: 600px; padding: 30px;
-            position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            transform: scale(0.9); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .career-detail-modal.active .modal-card { transform: scale(1); }
-        
-        .close-modal-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #666; cursor: pointer; transition: 0.2s; }
-        .close-modal-btn:hover { color: #fff; }
-        
-        .modal-header { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--gold); margin-bottom: 20px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        
-        .metric-row { display: flex; align-items: center; margin-bottom: 12px; }
-        .metric-label { width: 140px; font-size: 0.85rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
-        .metric-bar-bg { flex-grow: 1; height: 8px; background: #222; border-radius: 4px; overflow: hidden; position: relative; }
-        .metric-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold)); width: 0%; transition: width 1s ease-in-out; }
-        .metric-val { width: 40px; text-align: right; font-size: 0.8rem; font-weight: bold; color: #fff; margin-left: 10px; }
-        
-        .modal-desc-section { margin-top: 25px; }
-        .modal-desc-title { color: var(--gold-dim); font-size: 0.9rem; font-weight: 600; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
-        .modal-desc-text { color: #ccc; font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; }
-
         @media (max-width: 1200px) { .mixer-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 768px) { .mixer-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 480px) { .mixer-grid { grid-template-columns: 1fr; } }
@@ -408,40 +374,6 @@
         </div>
     </div>
 
-    <!-- CAREER DETAIL MODAL -->
-    <div id="career-modal" class="career-detail-modal">
-        <div class="modal-card">
-            <div class="close-modal-btn" onclick="app.closeCareerDetail()">&times;</div>
-            <div id="modal-career-title" class="modal-header">Tên Nghề Nghiệp</div>
-            
-            <div class="modal-desc-section">
-                <div class="metric-row">
-                    <div class="metric-label">Độ phổ biến</div>
-                    <div class="metric-bar-bg"><div id="bar-pop" class="metric-bar-fill"></div></div>
-                    <div id="val-pop" class="metric-val">85%</div>
-                </div>
-                <div class="metric-row">
-                    <div class="metric-label">Tính khả thi</div>
-                    <div class="metric-bar-bg"><div id="bar-feas" class="metric-bar-fill"></div></div>
-                    <div id="val-feas" class="metric-val">70%</div>
-                </div>
-                <div class="metric-row">
-                    <div class="metric-label">Cơ hội tương lai</div>
-                    <div class="metric-bar-bg"><div id="bar-fut" class="metric-bar-fill" style="background: linear-gradient(90deg, #3b82f6, #60a5fa);"></div></div>
-                    <div id="val-fut" class="metric-val">90%</div>
-                </div>
-            </div>
-
-            <div class="modal-desc-section">
-                <div class="modal-desc-title"><i class="fas fa-project-diagram"></i> Ảnh hưởng liên ngành</div>
-                <div id="modal-impact-text" class="modal-desc-text">Nghề này đóng vai trò quan trọng trong việc...</div>
-                
-                <div class="modal-desc-title"><i class="fas fa-users"></i> Yếu tố xã hội</div>
-                <div id="modal-social-text" class="modal-desc-text">Được xã hội trọng vọng và có xu hướng...</div>
-            </div>
-        </div>
-    </div>
-
     <script>
         // --- DATA: SINGLE TRAITS (Vietnam Market) ---
         const personalityData = {
@@ -472,6 +404,7 @@
         };
 
         // --- DATA: UNIVERSITIES MAP (Vietnam) ---
+        // Maps 2-letter combos to representative universities/institutions
         const universityCombinations = {
             'IR': ['Bách Khoa (HUST/HCMUT)', 'Sư phạm Kỹ thuật (HCMUTE)', 'Giao thông Vận tải (UTC)', 'Công nghiệp (IUH)', 'FPT University'],
             'AR': ['Kiến trúc (UAH/HAU)', 'Mỹ thuật Công nghiệp', 'Văn Lang', 'Tôn Đức Thắng', 'Hoa Sen'],
@@ -491,6 +424,7 @@
         };
 
         // --- DATA: CAREER COMBINATIONS (Vietnam Market Expanded - Massive) ---
+        // Format: Key sorted alphabetically
         const careerCombinations = {
             // 2-Letter Combinations
             'IR': ['Kỹ sư cơ điện (M&E)', 'IT Helpdesk/Support', 'Kỹ thuật viên phòng Lab', 'Kỹ sư cầu đường', 'Chuyên gia nông nghiệp CNC', 'Kỹ thuật viên chẩn đoán ô tô', 'Kỹ sư năng lượng mặt trời', 'Kỹ thuật viên Robot', 'Chuyên gia trắc địa số'],
@@ -1036,7 +970,7 @@
                 });
             },
             
-            // --- NEW O*NET COMBINATION LOGIC (Reverted to boolean selection) ---
+            // --- NEW O*NET COMBINATION LOGIC ---
             showResult: function() {
                 const name = document.getElementById('user-name').value;
                 document.getElementById('label-name').innerText = name || 'Nhạc trưởng';
@@ -1127,10 +1061,7 @@
                     groupDiv.style.borderLeft = `4px solid var(--gold)`;
                     groupDiv.style.width = '100%';
                     
-                    // Generate Clickable Tags
-                    let tagsHTML = matchedCareers.map(c => 
-                        `<span class="career-tag" onclick="app.analyzeCareer('${c}')">${c}</span>`
-                    ).join('');
+                    let tagsHTML = matchedCareers.map(c => `<span class="career-tag" style="border-color:var(--gold-dim); color:#fff;">${c}</span>`).join('');
                     
                     // Add Universities Section
                     let uniHTML = '';
@@ -1152,15 +1083,13 @@
                     `;
                     careerGridEl.appendChild(groupDiv);
                 } else {
-                    // FALLBACK: Show single careers
+                    // FALLBACK: Show single careers if combination logic fails or only 1 selected
                     activeKeys.forEach(k => {
                         const data = personalityData[k];
                         const groupDiv = document.createElement('div');
                         groupDiv.className = 'career-group';
                         groupDiv.style.borderLeft = `4px solid ${data.color}`;
-                        let tagsHTML = data.careers.map(c => 
-                            `<span class="career-tag" onclick="app.analyzeCareer('${c}')">${c}</span>`
-                        ).join('');
+                        let tagsHTML = data.careers.map(c => `<span class="career-tag">${c}</span>`).join('');
                         groupDiv.innerHTML = `<div class="career-group-header" style="color:${data.color}">${data.name} (Đơn lẻ)</div><div class="career-list-items">${tagsHTML}</div>`;
                         careerGridEl.appendChild(groupDiv);
                     });
@@ -1190,82 +1119,6 @@
             replay: function() {
                 document.getElementById('result-overlay').classList.remove('active'); 
                 document.body.classList.remove('show-result');
-            },
-
-            // --- CAREER ANALYSIS SYSTEM ---
-            analyzeCareer: function(careerName) {
-                const modal = document.getElementById('career-modal');
-                const titleEl = document.getElementById('modal-career-title');
-                const impactTextEl = document.getElementById('modal-impact-text');
-                const socialTextEl = document.getElementById('modal-social-text');
-                
-                // Set Title
-                titleEl.innerText = careerName;
-
-                // Generate Metrics (Simulated Logic based on keywords)
-                let popularity = 70, feasibility = 70, future = 70;
-                let impactDesc = "Nghề này có vai trò quan trọng trong hệ thống vận hành chung.";
-                let socialDesc = "Được xã hội đánh giá cao về tính ổn định.";
-
-                const lowerName = careerName.toLowerCase();
-
-                // Logic: Tech & Digital
-                if (lowerName.includes('it') || lowerName.includes('phần mềm') || lowerName.includes('data') || lowerName.includes('số') || lowerName.includes('công nghệ')) {
-                    popularity = 95; feasibility = 60; future = 98; // High demand, hard skills, huge future
-                    impactDesc = "Là nền tảng của chuyển đổi số, ảnh hưởng trực tiếp đến hiệu quả vận hành của mọi ngành nghề khác từ Y tế đến Tài chính.";
-                    socialDesc = "Được coi là 'ngành vua', thu nhập cao và vị thế xã hội hiện đại, năng động.";
-                }
-                // Logic: Creative & Art
-                else if (lowerName.includes('thiết kế') || lowerName.includes('biên tập') || lowerName.includes('sáng tạo') || lowerName.includes('nghệ thuật')) {
-                    popularity = 85; feasibility = 75; future = 80;
-                    impactDesc = "Tạo ra bộ mặt thương hiệu và trải nghiệm người dùng, tác động mạnh mẽ đến cảm xúc và quyết định mua hàng.";
-                    socialDesc = "Được đánh giá cao về sự tự do, phong cách sống thú vị và khả năng truyền cảm hứng.";
-                }
-                // Logic: Health & Medical
-                else if (lowerName.includes('bác sĩ') || lowerName.includes('y tá') || lowerName.includes('dược') || lowerName.includes('y tế')) {
-                    popularity = 90; feasibility = 40; future = 95; // Hard entry
-                    impactDesc = "Tác động trực tiếp đến sự sống và sức khỏe cộng đồng, là mắt xích không thể thiếu trong an sinh xã hội.";
-                    socialDesc = "Nhận được sự tôn trọng tuyệt đối từ cộng đồng, mang giá trị nhân văn sâu sắc.";
-                }
-                // Logic: Business & Management
-                else if (lowerName.includes('quản lý') || lowerName.includes('kinh doanh') || lowerName.includes('marketing') || lowerName.includes('ceo')) {
-                    popularity = 100; feasibility = 50; future = 90;
-                    impactDesc = "Định hướng chiến lược và dòng chảy tài chính, quyết định sự thành bại của tổ chức và tạo ra việc làm.";
-                    socialDesc = "Thường gắn liền với sự thành đạt, quyền lực và khả năng lãnh đạo.";
-                }
-                // Logic: Education & Social
-                else if (lowerName.includes('giáo viên') || lowerName.includes('nhân sự') || lowerName.includes('xã hội')) {
-                    popularity = 80; feasibility = 80; future = 85;
-                    impactDesc = "Xây dựng nền tảng con người, ảnh hưởng lâu dài đến chất lượng nguồn nhân lực tương lai.";
-                    socialDesc = "Được xã hội quý trọng vì tính chất 'trồng người' và sự cống hiến bền bỉ.";
-                }
-
-                // Randomize slightly for variation
-                popularity += Math.floor(Math.random() * 10 - 5);
-                future += Math.floor(Math.random() * 10 - 5);
-
-                // Update UI Bars
-                this.animateBar('bar-pop', 'val-pop', popularity);
-                this.animateBar('bar-feas', 'val-feas', feasibility);
-                this.animateBar('bar-fut', 'val-fut', future);
-
-                // Update Texts
-                impactTextEl.innerText = impactDesc;
-                socialTextEl.innerText = socialDesc;
-
-                modal.classList.add('active');
-            },
-
-            animateBar: function(barId, valId, target) {
-                const bar = document.getElementById(barId);
-                const txt = document.getElementById(valId);
-                bar.style.width = '0%';
-                setTimeout(() => { bar.style.width = target + '%'; }, 100);
-                txt.innerText = target + '%';
-            },
-
-            closeCareerDetail: function() {
-                document.getElementById('career-modal').classList.remove('active');
             }
         };
 
