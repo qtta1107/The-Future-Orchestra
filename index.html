@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Future Orchestra - Career Analyst Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Montserrat:wght@200;300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- CORE VARIABLES --- */
+        :root {
+            --gold: #ffd700;
+            --gold-dim: #d4af37;
+            --velvet: #4a0404;
+            --velvet-highlight: #7a0a0a;
+            --velvet-shadow: #2a0000;
+            --dark-bg: #050505;
+            --glass: rgba(20, 20, 20, 0.6);
+            --color-R: #ef4444; --color-I: #3b82f6; --color-A: #ec4899;
+            --color-S: #10b981; --color-E: #8b5cf6; --color-C: #f59e0b;
+        }
+
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: var(--dark-bg); 
+            color: #e5e5e5; 
+            margin: 0; padding: 0; user-select: none; perspective: 1500px;
+            overflow-x: hidden; overflow-y: hidden; 
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
+
+        .royal-font { font-family: 'Pinyon Script', cursive; }
+
+        /* --- ANIMATIONS --- */
+        @keyframes popIn { 0% { opacity: 0; transform: translateY(100px) scale(0.5); } 60% { opacity: 1; transform: translateY(-20px) scale(1.05); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes neonPulse { 0% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 5px var(--glow-color); border-color: var(--active-color); } 50% { box-shadow: 0 0 30px var(--glow-color), 0 0 50px var(--glow-color), inset 0 0 10px var(--active-color); border-color: #fff; } 100% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 5px var(--glow-color); border-color: var(--active-color); } }
+        @keyframes beat-pulse { 0% { transform: scale(1); filter: brightness(1); } 5% { transform: scale(1.02); filter: brightness(1.2); } 100% { transform: scale(1); filter: brightness(1); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        /* --- ENVIRONMENT --- */
+        .stage-container { position: fixed; inset: 0; z-index: 0; background: #000; }
+        .stage-floor { 
+            position: absolute; bottom: -25%; left: -10%; width: 120%; height: 80%; 
+            background: radial-gradient(ellipse at center top, rgba(60, 20, 20, 0.5) 0%, #000000 70%),
+                        repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 100px);
+            transform: rotateX(70deg); transform-origin: top;
+            box-shadow: inset 0 50px 150px #000; z-index: 1;
+            mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
+        }
+        .spotlight-beam { 
+            position: absolute; top: -200px; left: 50%; width: 1000px; height: 150vh; 
+            background: radial-gradient(ellipse at center, rgba(255, 223, 128, 0.15) 0%, rgba(255, 215, 0, 0.02) 40%, transparent 70%); 
+            transform: translateX(-50%); pointer-events: none; mix-blend-mode: screen; z-index: 5; filter: blur(50px); 
+            opacity: 0.8; transition: opacity 0.1s;
+        }
+        #visualizer-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; mix-blend-mode: screen; opacity: 0.8; }
+
+        /* --- TIMELINE UI --- */
+        .timeline-container {
+            position: fixed; top: 100px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 1000px; height: 40px;
+            z-index: 46; opacity: 0; transition: opacity 1s 2s;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none;
+        }
+        body.curtain-open .timeline-container { opacity: 1; }
+        
+        .timeline-track {
+            display: flex; width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;
+            overflow: visible;
+        }
+        .timeline-segment {
+            flex-grow: 1; height: 100%; margin: 0 1px; position: relative;
+            transition: all 0.3s ease;
+        }
+        .timeline-segment.active { background: var(--gold); box-shadow: 0 0 15px var(--gold); }
+        .timeline-segment.passed { background: var(--gold-dim); opacity: 0.3; }
+        
+        .timeline-label {
+            position: absolute; top: -25px; left: 50%; transform: translateX(-50%);
+            font-size: 0.55rem; color: #888; font-weight: 600; letter-spacing: 1px;
+            white-space: nowrap; transition: 0.3s;
+        }
+        .timeline-segment.active .timeline-label { color: var(--gold); font-size: 0.8rem; top: -35px; text-shadow: 0 0 10px rgba(0,0,0,0.8); }
+
+        /* --- CURTAINS --- */
+        .curtain-container { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
+        .curtain { 
+            position: absolute; top: 0; height: 100%; width: 51%; 
+            background-color: var(--velvet);
+            background-image: 
+                repeating-linear-gradient(90deg, var(--velvet-shadow) 0%, var(--velvet) 10%, var(--velvet-highlight) 20%, var(--velvet) 30%, var(--velvet-shadow) 40%),
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+            background-size: 200px 100%, 200px 200px;
+            box-shadow: inset 0 0 100px #000;
+            transition: transform 3.5s cubic-bezier(0.77, 0, 0.175, 1), filter 3.5s ease;
+            will-change: transform; z-index: 50;
+            border-bottom: 8px solid #330000;
+        }
+        .curtain::after {
+            content: ''; position: absolute; bottom: -20px; left: 0; width: 100%; height: 20px;
+            background: repeating-linear-gradient(90deg, var(--gold-dim) 0px, var(--gold) 2px, #5a4a00 4px, transparent 4px, transparent 8px);
+            box-shadow: 0 -5px 10px rgba(0,0,0,0.8);
+        }
+        .curtain.left { left: 0; transform-origin: left center; border-right: 2px solid rgba(0,0,0,0.8); }
+        .curtain.right { right: 0; transform-origin: right center; border-left: 2px solid rgba(0,0,0,0.8); }
+        body.curtain-open .curtain.left { transform: translateX(-95%) scaleX(0.2); filter: brightness(0.6); }
+        body.curtain-open .curtain.right { transform: translateX(95%) scaleX(0.2); filter: brightness(0.6); }
+        .spotlight-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, transparent 10%, rgba(0,0,0,0.95) 80%);
+            opacity: 1; transition: opacity 2.5s ease-in-out; z-index: 51; pointer-events: none;
+        }
+        body.curtain-open .spotlight-overlay { opacity: 0; }
+
+        /* --- UI LAYER --- */
+        .ui-layer { 
+            position: relative; z-index: 40; height: 100vh; 
+            display: flex; flex-direction: column; overflow-y: auto; 
+            padding-top: 150px; padding-bottom: 50px;
+        }
+
+        .mixer-grid {
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px;
+            max-width: 1600px; width: 98%; height: auto; margin: auto;
+            transition: all 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            opacity: 0; transform: translateY(50px) scale(0.95);
+        }
+        body.curtain-open .mixer-grid { opacity: 1; transform: translateY(0) scale(1); transition-delay: 0.8s; }
+
+        .mixer-col {
+            background: rgba(20, 20, 20, 0.85); border: 2px solid #333; border-radius: 20px;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative; cursor: pointer; user-select: none;
+            opacity: 0; transform: translateY(100px) scale(0.8);
+        }
+        .mixer-col::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+            transform: skewX(-25deg); transition: none; pointer-events: none; z-index: 10;
+        }
+        .mixer-col:hover { 
+            transform: translateY(-15px) scale(1.02); border-color: var(--active-color);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 15px var(--glow-color);
+        }
+        .mixer-col.active { 
+            transform: translateY(-12px) scale(1.03); 
+            animation: neonPulse 2s infinite ease-in-out;
+            background: linear-gradient(180deg, rgba(20,20,20,0.9), rgba(0,0,0,1));
+        }
+        .mixer-col.active::after {
+            content: ''; position: absolute; inset: 0; 
+            box-shadow: 0 0 15px var(--active-color); opacity: 0.2; border-radius: 20px;
+            animation: beat-pulse 0.5s infinite;
+        }
+
+        body.curtain-open .mixer-col { animation: popIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        body.curtain-open .mixer-col:nth-child(1) { animation-delay: 1.0s; }
+        body.curtain-open .mixer-col:nth-child(2) { animation-delay: 1.15s; }
+        body.curtain-open .mixer-col:nth-child(3) { animation-delay: 1.3s; }
+        body.curtain-open .mixer-col:nth-child(4) { animation-delay: 1.45s; }
+        body.curtain-open .mixer-col:nth-child(5) { animation-delay: 1.6s; }
+        body.curtain-open .mixer-col:nth-child(6) { animation-delay: 1.75s; }
+
+        .card-content { padding: 15px; display: flex; flex-direction: column; height: 100%; text-align: center; z-index: 5; }
+        .group-icon-large { font-size: 2.5rem; margin-bottom: 10px; display: block; transition: all 0.3s; }
+        .group-title { font-weight: 800; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .group-desc { font-size: 0.75rem; line-height: 1.4; color: #aaa; margin-bottom: 15px; flex-grow: 1; font-style: italic; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
+        .group-association { font-size: 0.65rem; color: #888; margin-top: auto; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .inst-icons { display: flex; justify-content: center; gap: 8px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 10px; flex-wrap: wrap; transition: 0.3s; }
+        .mixer-col.active .inst-icons { background: rgba(255,255,255,0.05); }
+        .inst-icon { font-size: 1rem; color: #444; transition: all 0.3s; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border-radius: 50%; }
+        .mixer-col.active .inst-icon { color: #fff; background: rgba(255,255,255,0.2); box-shadow: 0 0 10px currentColor; transform: scale(1.1); }
+        
+        .group-R { --active-color: var(--color-R); --glow-color: rgba(239, 68, 68, 0.6); } .group-R.active { background: linear-gradient(180deg, rgba(239,68,68,0.15), rgba(20,20,20,0.9)); } .group-R .group-title, .group-R.active .group-icon-large, .group-R.active .inst-icon { color: var(--color-R); }
+        .group-I { --active-color: var(--color-I); --glow-color: rgba(59, 130, 246, 0.6); } .group-I.active { background: linear-gradient(180deg, rgba(59,130,246,0.15), rgba(20,20,20,0.9)); } .group-I .group-title, .group-I.active .group-icon-large, .group-I.active .inst-icon { color: var(--color-I); }
+        .group-A { --active-color: var(--color-A); --glow-color: rgba(236, 72, 153, 0.6); } .group-A.active { background: linear-gradient(180deg, rgba(236,72,153,0.15), rgba(20,20,20,0.9)); } .group-A .group-title, .group-A.active .group-icon-large, .group-A.active .inst-icon { color: var(--color-A); }
+        .group-S { --active-color: var(--color-S); --glow-color: rgba(16, 185, 129, 0.6); } .group-S.active { background: linear-gradient(180deg, rgba(16,185,129,0.15), rgba(20,20,20,0.9)); } .group-S .group-title, .group-S.active .group-icon-large, .group-S.active .inst-icon { color: var(--color-S); }
+        .group-E { --active-color: var(--color-E); --glow-color: rgba(139, 92, 246, 0.6); } .group-E.active { background: linear-gradient(180deg, rgba(139,92,246,0.15), rgba(20,20,20,0.9)); } .group-E .group-title, .group-E.active .group-icon-large, .group-E.active .inst-icon { color: var(--color-E); }
+        .group-C { --active-color: var(--color-C); --glow-color: rgba(245, 158, 11, 0.6); } .group-C.active { background: linear-gradient(180deg, rgba(245,158,11,0.15), rgba(20,20,20,0.9)); } .group-C .group-title, .group-C.active .group-icon-large, .group-C.active .inst-icon { color: var(--color-C); }
+
+        /* --- LANDING --- */
+        .landing-wrapper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 60; text-align: center; width: 100%; transition: all 1.2s ease-in-out; }
+        body.curtain-open .landing-wrapper { opacity: 0; pointer-events: none; transform: translate(-50%, -60%) scale(1.1); filter: blur(10px); }
+        .main-title { font-family: 'Pinyon Script', cursive; font-size: 7rem; color: var(--gold); text-shadow: 0 0 40px rgba(255, 215, 0, 0.4); margin: 0; }
+        .name-input { background: transparent; border: none; border-bottom: 2px solid rgba(255,215,0,0.3); color: #fff; font-family: 'Pinyon Script', cursive; font-size: 2rem; text-align: center; padding: 10px; margin-top: 3rem; width: 350px; outline: none; transition: all 0.3s; }
+        .name-input:focus { border-color: var(--gold); text-shadow: 0 0 10px rgba(255,215,0,0.3); }
+        .enter-btn { margin-top: 2rem; padding: 12px 40px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,215,0,0.4); color: var(--gold); font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: all 0.4s; }
+        .enter-btn:hover { background: rgba(255,215,0,0.1); border-color: var(--gold); box-shadow: 0 0 20px rgba(255,215,0,0.3); }
+
+        /* --- HEADER & CONTROLS --- */
+        .header-ui { position: fixed; top: 0; left: 0; width: 100%; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; z-index: 45; opacity: 0; transition: opacity 1s 2s; pointer-events: none; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); }
+        body.curtain-open .header-ui { opacity: 1; pointer-events: auto; }
+        .logo-small { font-family: 'Pinyon Script', cursive; color: var(--gold); font-size: 1.8rem; }
+        .control-panel { display: flex; gap: 15px; }
+        .ctrl-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; transition: 0.3s; background: rgba(0,0,0,0.5); }
+        .ctrl-btn:hover { background: var(--gold); color: #000; border-color: var(--gold); transform: scale(1.1); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
+        .play-btn { width: auto; padding: 0 30px; border-radius: 4px; border-color: var(--gold); color: var(--gold); font-weight: 600; letter-spacing: 2px; font-size: 0.8rem; }
+        .play-btn:hover { color: #000; background: var(--gold); box-shadow: 0 0 25px rgba(255,215,0,0.6); }
+
+        /* --- RESULT OVERLAY --- */
+        #result-overlay {
+            position: fixed; inset: 0; z-index: 55; display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(20px); opacity: 0; pointer-events: none; transition: opacity 1.5s ease; overflow-y: auto; padding-top: 50px;
+        }
+        body.show-result #result-overlay { opacity: 1; pointer-events: auto; }
+        .vinyl-container { position: relative; flex: 0 0 180px; width: 180px; height: 180px; margin-bottom: 2rem; animation: spin 4s linear infinite; border-radius: 50%; box-shadow: 0 10px 40px rgba(0,0,0,0.7); }
+        body:not(.playing) .vinyl-container { animation-play-state: paused; }
+        .vinyl-disk { width: 100%; height: 100%; border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; border: 1px solid #000; background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.0) 50%, rgba(255,255,255,0.1) 55%, transparent 60%), repeating-radial-gradient(#111 0, #111 2px, #1c1c1c 3px, #111 4px); aspect-ratio: 1/1; }
+        .vinyl-label { width: 38%; height: 38%; border-radius: 50%; background: radial-gradient(circle at center, #ffd700, #d4af37); color: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 0.6rem; padding: 2px; box-shadow: 0 0 0 4px #111, inset 0 0 10px rgba(0,0,0,0.5); z-index: 10; }
+        .label-text { font-family: 'Pinyon Script', cursive; font-size: 0.9rem; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; }
+        .result-content { text-align: center; max-width: 1000px; width: 90%; padding: 0 20px 80px 20px; display: flex; flex-direction: column; align-items: center; }
+        .result-title { font-size: 2.5rem; color: var(--gold); font-family: 'Pinyon Script', cursive; margin-bottom: 0.5rem; }
+        .analysis-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; margin-bottom: 2rem; max-width: 800px; }
+        .conclusion-box { background: linear-gradient(180deg, rgba(255, 215, 0, 0.05) 0%, rgba(0,0,0,0.2) 100%); border-top: 2px solid var(--gold); border-bottom: 1px solid rgba(255,255,255,0.1); border-radius: 5px; padding: 25px; margin-bottom: 2rem; max-width: 800px; text-align: left; position: relative; }
+        .conclusion-title { color: var(--gold); font-family: 'Montserrat', sans-serif; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; text-align: center; border-bottom: 1px solid rgba(255,215,0,0.2); padding-bottom: 10px; }
+        .analysis-text { font-size: 1rem; line-height: 1.6; color: #ddd; font-style: italic; }
+        .conclusion-text { font-size: 0.95rem; line-height: 1.7; color: #e5e5e5; }
+        .conclusion-label { color: #aaa; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; display: block; margin-top: 15px; margin-bottom: 5px; border-left: 3px solid var(--gold); padding-left: 10px; }
+        .highlight-trait { color: var(--gold); font-weight: 600; }
+        .career-section-title { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.6); margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: inline-block; padding-bottom: 5px; }
+        .career-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; margin-bottom: 2rem; }
+        .career-group { background: rgba(0,0,0,0.3); border: 1px solid #333; border-radius: 12px; padding: 15px; text-align: left; transition: transform 0.3s; }
+        .career-group-header { font-size: 1rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; }
+        .career-list-items { display: flex; flex-wrap: wrap; gap: 8px; }
+        .career-tag { font-size: 0.8rem; color: #ccc; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s; }
+        .career-tag:hover { background: var(--gold); color: #000; transform: translateY(-2px); box-shadow: 0 0 10px var(--gold); }
+        .university-list { display: block; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; }
+        .university-item { display: inline-block; font-size: 0.75rem; color: var(--gold-dim); margin-right: 10px; margin-bottom: 5px; }
+        .university-item i { margin-right: 4px; }
+        #result-btn-container { opacity: 0; transition: opacity 1s 10s; position: fixed; bottom: 30px; right: 30px; z-index: 56; }
+        body.playing #result-btn-container { opacity: 1; }
+        .show-result-btn { background: rgba(0,0,0,0.6); border: 1px solid var(--gold); color: var(--gold); padding: 10px 25px; border-radius: 30px; font-size: 0.7rem; letter-spacing: 2px; cursor: pointer; transition: all 0.3s; }
+        .show-result-btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 20px var(--gold); }
+
+        /* --- CAREER DETAIL MODAL --- */
+        .career-detail-modal {
+            position: fixed; inset: 0; z-index: 100;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .career-detail-modal.active { opacity: 1; pointer-events: auto; }
+        
+        .modal-card {
+            background: #111; border: 1px solid var(--gold); border-radius: 15px;
+            width: 90%; max-width: 600px; padding: 30px;
+            position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            transform: scale(0.9); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .career-detail-modal.active .modal-card { transform: scale(1); }
+        
+        .close-modal-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #666; cursor: pointer; transition: 0.2s; }
+        .close-modal-btn:hover { color: #fff; }
+        
+        .modal-header { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--gold); margin-bottom: 20px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        
+        .metric-row { display: flex; align-items: center; margin-bottom: 12px; }
+        .metric-label { width: 140px; font-size: 0.85rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+        .metric-bar-bg { flex-grow: 1; height: 8px; background: #222; border-radius: 4px; overflow: hidden; position: relative; }
+        .metric-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold)); width: 0%; transition: width 1s ease-in-out; }
+        .metric-val { width: 40px; text-align: right; font-size: 0.8rem; font-weight: bold; color: #fff; margin-left: 10px; }
+        
+        .modal-desc-section { margin-top: 25px; }
+        .modal-desc-title { color: var(--gold-dim); font-size: 0.9rem; font-weight: 600; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .modal-desc-text { color: #ccc; font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; }
+
+        @media (max-width: 1200px) { .mixer-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) { .mixer-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 480px) { .mixer-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <!-- STAGE -->
+    <div class="stage-container">
+        <div class="stage-floor"></div>
+        <div id="spotlight" class="spotlight-beam"></div>
+        <canvas id="visualizer-canvas"></canvas>
+    </div>
+
+    <!-- CURTAINS -->
+    <div class="curtain-container">
+        <div class="curtain left"></div>
+        <div class="curtain right"></div>
+        <div class="spotlight-overlay"></div>
+    </div>
+
+    <!-- LANDING -->
+    <div class="landing-wrapper">
+        <h1 class="main-title">The Future Orchestra</h1>
+        <p class="text-xs tracking-[0.5em] text-gray-400 mt-4 uppercase">Vietnam Education Edition</p>
+        <div class="flex flex-col items-center">
+            <input type="text" id="user-name" class="name-input" placeholder="Tên của bạn..." autocomplete="off">
+            <button class="enter-btn" onclick="app.enterStage()">Bước lên bục</button>
+        </div>
+    </div>
+
+    <!-- STRUCTURE TIMELINE -->
+    <div id="structure-timeline" class="timeline-container"></div>
+
+    <!-- RESULT TRIGGER -->
+    <div id="result-btn-container">
+        <button class="show-result-btn" onclick="app.showResult()">XEM KẾT QUẢ &rarr;</button>
+    </div>
+
+    <!-- RESULT OVERLAY -->
+    <div id="result-overlay">
+        <div class="vinyl-container">
+            <div class="vinyl-disk"><div class="vinyl-label"><span class="text-[8px] uppercase tracking-widest mb-1">Conductor</span><span id="label-name" class="label-text">Name</span></div></div>
+        </div>
+        <div class="result-content">
+            <h2 class="result-title">Bản Giao Hưởng Sự Nghiệp</h2>
+            
+            <div class="analysis-box"><p id="analysis-text" class="analysis-text">Đang phân tích...</p></div>
+            
+            <div id="conclusion-container" class="conclusion-box" style="display:none;">
+                <h3 class="conclusion-title">Tổng Kết Chuyên Sâu: Bản Ngã & Âm Nhạc</h3>
+                <div id="conclusion-content" class="conclusion-text"></div>
+            </div>
+
+            <h3 class="career-section-title">Gợi Ý Nghề Nghiệp & Đào Tạo</h3>
+            <div id="career-grid" class="career-grid"></div>
+            <button class="enter-btn" onclick="app.replay()">Phối Khí Lại</button>
+        </div>
+    </div>
+
+    <!-- MAIN INTERFACE -->
+    <div class="header-ui">
+        <div class="logo-small">The Future Orchestra</div>
+        <div class="control-panel">
+            <button class="ctrl-btn" onclick="app.reset()" title="Reset All"><i class="fas fa-undo"></i></button>
+            <button id="main-play-btn" class="ctrl-btn play-btn" onclick="app.togglePlay()"><i class="fas fa-play mr-2"></i> PLAY</button>
+        </div>
+    </div>
+
+    <div class="ui-layer">
+        <div class="mixer-grid">
+            <!-- R -->
+            <div id="card-R" class="mixer-col group-R" onclick="app.toggleGroup('R')">
+                <div class="card-content">
+                    <span class="group-icon-large"><i class="fas fa-hammer"></i></span>
+                    <h2 class="group-title">Realistic (R)</h2>
+                    <p class="group-desc">Thực tế: Thích làm việc với máy móc, công cụ, vận động.</p>
+                    <div class="group-association">Vocals: Giọng Tenor (Hô hào)</div>
+                    <div class="inst-icons"><div class="inst-icon"><i class="fas fa-drum"></i></div><div class="inst-icon"><i class="fas fa-hammer"></i></div><div class="inst-icon"><i class="fas fa-guitar"></i></div><div class="inst-icon"><i class="fas fa-cogs"></i></div><div class="inst-icon"><i class="fas fa-microphone"></i></div><div class="inst-icon"><i class="fas fa-lungs"></i></div></div>
+                </div>
+            </div>
+            <!-- I -->
+            <div id="card-I" class="mixer-col group-I" onclick="app.toggleGroup('I')">
+                <div class="card-content">
+                    <span class="group-icon-large"><i class="fas fa-microchip"></i></span>
+                    <h2 class="group-title">Investigative (I)</h2>
+                    <p class="group-desc">Nghiên cứu: Thích quan sát, tìm tòi, phân tích logic.</p>
+                    <div class="group-association">Vocals: Giọng Nữ Cao (Soprano)</div>
+                    <div class="inst-icons"><div class="inst-icon"><i class="fas fa-keyboard"></i></div><div class="inst-icon"><i class="fas fa-music"></i></div><div class="inst-icon"><i class="fas fa-bell"></i></div><div class="inst-icon"><i class="fas fa-wifi"></i></div><div class="inst-icon"><i class="fas fa-microphone-alt"></i></div><div class="inst-icon"><i class="fas fa-robot"></i></div></div>
+                </div>
+            </div>
+            <!-- A -->
+            <div id="card-A" class="mixer-col group-A" onclick="app.toggleGroup('A')">
+                <div class="card-content">
+                    <span class="group-icon-large"><i class="fas fa-palette"></i></span>
+                    <h2 class="group-title">Artistic (A)</h2>
+                    <p class="group-desc">Nghệ thuật: Sáng tạo, trực giác, giàu trí tưởng tượng.</p>
+                    <div class="group-association">Vocals: Giọng Gió (Whisper)</div>
+                    <div class="inst-icons"><div class="inst-icon"><i class="fas fa-wind"></i></div><div class="inst-icon"><i class="fas fa-guitar"></i></div><div class="inst-icon"><i class="fas fa-cloud"></i></div><div class="inst-icon"><i class="fas fa-magic"></i></div><div class="inst-icon"><i class="fas fa-microphone-lines"></i></div><div class="inst-icon"><i class="fas fa-bullhorn"></i></div></div>
+                </div>
+            </div>
+            <!-- S -->
+            <div id="card-S" class="mixer-col group-S" onclick="app.toggleGroup('S')">
+                <div class="card-content">
+                    <span class="group-icon-large"><i class="fas fa-users"></i></span>
+                    <h2 class="group-title">Social (S)</h2>
+                    <p class="group-desc">Xã hội: Thích giúp đỡ, sẻ chia, kết nối cộng đồng.</p>
+                    <div class="group-association">Vocals: Dàn Đồng Ca (Choir)</div>
+                    <div class="inst-icons"><div class="inst-icon"><i class="fas fa-guitar"></i></div><div class="inst-icon"><i class="fas fa-box-open"></i></div><div class="inst-icon"><i class="fas fa-bottle-water"></i></div><div class="inst-icon"><i class="fas fa-comments"></i></div><div class="inst-icon"><i class="fas fa-users"></i></div><div class="inst-icon"><i class="fas fa-hands-helping"></i></div></div>
+                </div>
+            </div>
+            <!-- E -->
+            <div id="card-E" class="mixer-col group-E" onclick="app.toggleGroup('E')">
+                <div class="card-content">
+                    <span class="group-icon-large"><i class="fas fa-bullhorn"></i></span>
+                    <h2 class="group-title">Enterprising (E)</h2>
+                    <p class="group-desc">Quản lý: Thuyết phục, lãnh đạo, kinh doanh, tham vọng.</p>
+                    <div class="group-association">Vocals: Giọng Hùng Biện (Baritone)</div>
+                    <div class="inst-icons"><div class="inst-icon"><i class="fas fa-bolt"></i></div><div class="inst-icon"><i class="fas fa-bullhorn"></i></div><div class="inst-icon"><i class="fas fa-database"></i></div><div class="inst-icon"><i class="fas fa-gavel"></i></div><div class="inst-icon"><i class="fas fa-bullhorn"></i></div><div class="inst-icon"><i class="fas fa-hand-fist"></i></div></div>
+                </div>
+            </div>
+            <!-- C -->
+            <div id="card-C" class="mixer-col group-C" onclick="app.toggleGroup('C')">
+                <div class="card-content">
+                    <span class="group-icon-large"><i class="fas fa-tasks"></i></span>
+                    <h2 class="group-title">Conventional (C)</h2>
+                    <p class="group-desc">Nghiệp vụ: Tỉ mỉ, trật tự, con số, quy trình chuẩn.</p>
+                    <div class="group-association">Vocals: Ngân Nga (Hum)</div>
+                    <div class="inst-icons"><div class="inst-icon"><i class="fas fa-ellipsis-vertical"></i></div><div class="inst-icon"><i class="fas fa-wind"></i></div><div class="inst-icon"><i class="fas fa-square"></i></div><div class="inst-icon"><i class="fas fa-clock"></i></div><div class="inst-icon"><i class="fas fa-user-clock"></i></div><div class="inst-icon"><i class="fas fa-check"></i></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CAREER DETAIL MODAL -->
+    <div id="career-modal" class="career-detail-modal">
+        <div class="modal-card">
+            <div class="close-modal-btn" onclick="app.closeCareerDetail()">&times;</div>
+            <div id="modal-career-title" class="modal-header">Tên Nghề Nghiệp</div>
+            
+            <div class="modal-desc-section">
+                <div class="metric-row">
+                    <div class="metric-label">Độ phổ biến</div>
+                    <div class="metric-bar-bg"><div id="bar-pop" class="metric-bar-fill"></div></div>
+                    <div id="val-pop" class="metric-val">85%</div>
+                </div>
+                <div class="metric-row">
+                    <div class="metric-label">Tính khả thi</div>
+                    <div class="metric-bar-bg"><div id="bar-feas" class="metric-bar-fill"></div></div>
+                    <div id="val-feas" class="metric-val">70%</div>
+                </div>
+                <div class="metric-row">
+                    <div class="metric-label">Cơ hội tương lai</div>
+                    <div class="metric-bar-bg"><div id="bar-fut" class="metric-bar-fill" style="background: linear-gradient(90deg, #3b82f6, #60a5fa);"></div></div>
+                    <div id="val-fut" class="metric-val">90%</div>
+                </div>
+            </div>
+
+            <div class="modal-desc-section">
+                <div class="modal-desc-title"><i class="fas fa-project-diagram"></i> Ảnh hưởng liên ngành</div>
+                <div id="modal-impact-text" class="modal-desc-text">Nghề này đóng vai trò quan trọng trong việc...</div>
+                
+                <div class="modal-desc-title"><i class="fas fa-users"></i> Yếu tố xã hội</div>
+                <div id="modal-social-text" class="modal-desc-text">Được xã hội trọng vọng và có xu hướng...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA: SINGLE TRAITS (Vietnam Market) ---
+        const personalityData = {
+            'R': { 
+                name: 'Thực tế (R)', color: '#ef4444', desc: 'Thích làm việc với máy móc, công cụ, không gian mở.',
+                careers: ['Kỹ sư xây dựng', 'Kỹ thuật viên điện/nước', 'Đầu bếp/Phụ bếp', 'Lái xe công nghệ/vận tải', 'Nông dân công nghệ cao', 'Thợ sửa chữa ô tô/xe máy', 'Nhân viên bảo trì tòa nhà']
+            },
+            'I': { 
+                name: 'Nghiên cứu (I)', color: '#3b82f6', desc: 'Thích quan sát, tìm tòi, phân tích và giải quyết vấn đề.',
+                careers: ['Lập trình viên (IT)', 'Bác sĩ chuyên khoa', 'Dược sĩ', 'Chuyên viên phân tích dữ liệu (Data Analyst)', 'Kỹ sư phần mềm', 'Giảng viên đại học', 'Chuyên viên nghiên cứu thị trường']
+            },
+            'A': { 
+                name: 'Nghệ thuật (A)', color: '#ec4899', desc: 'Sáng tạo, trực giác, giàu trí tưởng tượng.',
+                careers: ['Graphic Designer', 'Content Creator (TikTok/YouTube)', 'Kiến trúc sư', 'Copywriter', 'Nhiếp ảnh gia/Videographer', 'Stylist/Nhà thiết kế thời trang', 'Editor video']
+            },
+            'S': { 
+                name: 'Xã hội (S)', color: '#10b981', desc: 'Thích giúp đỡ, chữa lành, và giảng dạy người khác.',
+                careers: ['Giáo viên (Tiếng Anh, Kỹ năng)', 'Nhân viên nhân sự (HR)', 'Y tá/Điều dưỡng', 'Chăm sóc khách hàng (CSKH)', 'Hướng dẫn viên du lịch', 'Huấn luyện viên cá nhân (PT)', 'Tư vấn viên du học']
+            },
+            'E': { 
+                name: 'Quản lý (E)', color: '#8b5cf6', desc: 'Thích lãnh đạo, thuyết phục và làm việc trong môi trường kinh doanh.',
+                careers: ['Sale Bất động sản/Ô tô/Bảo hiểm', 'Chủ shop kinh doanh online', 'Marketing Executive', 'Quản lý dự án (Project Manager)', 'CEO/Founder Startup', 'Giám đốc kinh doanh', 'Luật sư kinh tế']
+            },
+            'C': { 
+                name: 'Nghiệp vụ (C)', color: '#f59e0b', desc: 'Thích làm việc với dữ liệu, con số, sự chi tiết và trật tự.',
+                careers: ['Kế toán tổng hợp', 'Kiểm toán viên', 'Nhân viên hành chính văn phòng', 'Giao dịch viên ngân hàng', 'Nhân viên Kho/Thủ kho', 'QA/QC (Kiểm soát chất lượng)', 'Biên phiên dịch viên']
+            }
+        };
+
+        // --- DATA: UNIVERSITIES MAP (Vietnam) ---
+        const universityCombinations = {
+            'IR': ['Bách Khoa (HUST/HCMUT)', 'Sư phạm Kỹ thuật (HCMUTE)', 'Giao thông Vận tải (UTC)', 'Công nghiệp (IUH)', 'FPT University'],
+            'AR': ['Kiến trúc (UAH/HAU)', 'Mỹ thuật Công nghiệp', 'Văn Lang', 'Tôn Đức Thắng', 'Hoa Sen'],
+            'RS': ['Đại học Thể dục Thể thao', 'Cảnh sát Nhân dân', 'Y Dược (Điều dưỡng)', 'Cao đẳng Du lịch', 'Sư phạm (Giáo dục thể chất)'],
+            'ER': ['Giao thông Vận tải', 'Thương mại (TMU)', 'Kinh tế Kỹ thuật Công nghiệp', 'Xây dựng (NUCE)', 'Hàng hải'],
+            'CR': ['Học viện Tài chính', 'Học viện Ngân hàng', 'Công nghệ (VNU-UET)', 'Bưu chính Viễn thông (PTIT)', 'Kinh tế - Kỹ thuật'],
+            'AI': ['RMIT', 'Văn Lang', 'Hoa Sen', 'FPT Arena', 'Mỹ thuật Việt Nam', 'Kiến trúc'],
+            'IS': ['Y Hà Nội (HMU)', 'Y Dược TPHCM (UMP)', 'Sư phạm (Các môn KHTN)', 'Khoa học Tự nhiên (VNU-HUS/HCMUS)', 'Y tế Công cộng'],
+            'EI': ['Ngoại thương (FTU)', 'Kinh tế Quốc dân (NEU)', 'Kinh tế TPHCM (UEH)', 'Luật (HLU/UL)', 'Học viện Chính sách & Phát triển'],
+            'CI': ['Bách Khoa (CNTT)', 'Khoa học Tự nhiên (Toán-Tin)', 'Kinh tế Quốc dân (Toán kinh tế)', 'Ngân hàng', 'Công nghệ thông tin (UIT)'],
+            'AS': ['Sư phạm (Mầm non, Nghệ thuật)', 'KHXH&NV (USSH)', 'Văn hóa', 'Sân khấu Điện ảnh', 'Sư phạm Nghệ thuật TW'],
+            'AE': ['RMIT', 'Swinburne Vietnam', 'Ngoại thương (Truyền thông)', 'Học viện Báo chí & Tuyên truyền', 'Hoa Sen', 'BUV'],
+            'AC': ['Mỹ thuật Công nghiệp', 'Kiến trúc', 'Văn Lang (Đồ họa)', 'Tôn Đức Thắng', 'Mở (Thiết kế)'],
+            'ES': ['Ngoại thương', 'Kinh tế Quốc dân (Quản trị)', 'Thương mại', 'Du lịch', 'Học viện Ngoại giao'],
+            'CS': ['Nội vụ', 'Lao động Xã hội', 'Công đoàn', 'Hành chính Quốc gia', 'Y tế Công cộng'],
+            'CE': ['Học viện Tài chính', 'Học viện Ngân hàng', 'Kinh tế - Luật (UEL)', 'Thương mại', 'Kinh tế Quốc dân']
+        };
+
+        // --- DATA: CAREER COMBINATIONS (Vietnam Market Expanded - Massive) ---
+        const careerCombinations = {
+            // 2-Letter Combinations
+            'IR': ['Kỹ sư cơ điện (M&E)', 'IT Helpdesk/Support', 'Kỹ thuật viên phòng Lab', 'Kỹ sư cầu đường', 'Chuyên gia nông nghiệp CNC', 'Kỹ thuật viên chẩn đoán ô tô', 'Kỹ sư năng lượng mặt trời', 'Kỹ thuật viên Robot', 'Chuyên gia trắc địa số'],
+            'AR': ['Kiến trúc sư', 'Thiết kế nội thất', 'Đầu bếp chuyên nghiệp (Chef)', 'Thợ làm bánh nghệ thuật', 'Thợ xăm hình', 'Kỹ thuật viên âm thanh/ánh sáng', 'Thiết kế cảnh quan', 'Thợ mộc mỹ nghệ', 'Nhiếp ảnh gia sản phẩm', 'Thiết kế thời trang (Kỹ thuật may)'],
+            'RS': ['Huấn luyện viên Gym/Yoga/Bơi lội', 'Điều dưỡng viên', 'Lái xe du lịch', 'Kỹ thuật viên vật lý trị liệu', 'Cảnh sát/An ninh', 'Nhân viên cứu hộ', 'Thợ làm tóc/Stylist', 'Bảo mẫu cao cấp', 'Kỹ thuật viên spa', 'Hướng dẫn viên du lịch mạo hiểm'],
+            'ER': ['Quản lý sản xuất', 'Kỹ sư bán hàng (Sales Engineer)', 'Chủ thầu xây dựng', 'Quản lý nhà hàng/Khách sạn', 'Giám sát công trình', 'Kinh doanh vận tải', 'Quản lý kho vận', 'Chủ gara ô tô', 'Quản lý trang trại', 'Đại lý phân phối thiết bị công nghiệp'],
+            'CR': ['Kỹ sư QS (Kinh tế xây dựng)', 'Giám sát an toàn lao động (HSE)', 'IT Tester (Kiểm thử phần mềm)', 'Kỹ thuật viên vận hành máy', 'Nhân viên thống kê sản xuất', 'Kế toán kho', 'Nhân viên hải quan', 'Kiểm định viên chất lượng xe', 'Quản lý hồ sơ bệnh án'],
+            'AI': ['UI/UX Designer', 'Kiến trúc sư phần mềm', 'Content Writer chuyên sâu (Tech/Y tế)', 'Nhà thiết kế game', 'Marketing Analyst', 'SEO Specialist', 'Biên kịch game', 'Nhà thiết kế sản phẩm công nghiệp (Industrial Designer)', 'Chuyên gia ngôn ngữ học máy tính'],
+            'IS': ['Bác sĩ đa khoa', 'Dược sĩ nhà thuốc', 'Giáo viên Toán/Lý/Hóa', 'Chuyên gia dinh dưỡng', 'Bác sĩ thú y', 'Chuyên viên tuyển dụng IT', 'Chuyên gia tâm lý học đường', 'Bác sĩ y học cổ truyền', 'Giảng viên điều dưỡng', 'Chuyên gia tư vấn di truyền'],
+            'EI': ['Business Analyst (BA)', 'Product Manager (Sản phẩm công nghệ)', 'Digital Marketing Manager', 'Luật sư tư vấn', 'Môi giới chứng khoán', 'Chuyên viên tư vấn đầu tư', 'Growth Hacker', 'Quản lý thương mại điện tử (E-commerce Manager)', 'Chủ doanh nghiệp Tech Startup', 'Nhà đầu tư thiên thần'],
+            'CI': ['Data Analyst', 'Lập trình viên Backend', 'Kế toán trưởng', 'Chuyên viên phân tích tài chính', 'Dược sĩ kiểm nghiệm', 'Actuary (Định phí bảo hiểm)', 'Chuyên gia an ninh mạng (Cybersecurity)', 'Quản trị cơ sở dữ liệu (DBA)', 'Lập trình viên Blockchain', 'Kiểm toán viên nội bộ'],
+            'AS': ['Giáo viên mầm non', 'Giáo viên Tiếng Anh/Ngoại ngữ', 'Content Marketing', 'Truyền thông nội bộ', 'Nhân viên công tác xã hội', 'Tư vấn tâm lý', 'Giáo viên dạy nhạc/họa', 'Biên tập viên sách thiếu nhi', 'Tổ chức sự kiện cộng đồng', 'Chuyên gia trị liệu bằng nghệ thuật (Art Therapist)'],
+            'AE': ['Account Manager (Agency)', 'Tiktoker/KOL/Influencer', 'Biên tập viên truyền hình', 'Giám đốc sáng tạo', 'Tổ chức sự kiện (Event Planner)', 'Sale Admin (ngành sáng tạo)', 'Phóng viên/Nhà báo', 'Producer (Sản xuất chương trình)', 'Chuyên viên quan hệ công chúng (PR)', 'Copywriter quảng cáo'],
+            'AC': ['Graphic Designer (2D/3D)', 'Video Editor', 'Thiết kế dàn trang (In ấn)', 'Thư ký biên tập', 'Quản trị website (Web Admin)', 'Nhân viên thiết kế bao bì', 'Thư viện viên số', 'Biên dịch viên sách', 'Chuyên viên lưu trữ bảo tàng', 'Thiết kế giao diện ứng dụng'],
+            'ES': ['Chuyên viên tuyển dụng (Recruiter)', 'Trưởng phòng nhân sự', 'Chăm sóc khách hàng VIP', 'Tư vấn viên bảo hiểm', 'Quản lý sảnh khách sạn', 'Đại diện thương mại', 'Tiếp viên hàng không', 'Chuyên viên tư vấn du học', 'Giám đốc kinh doanh vùng', 'Chuyên gia huấn luyện doanh nghiệp (Corporate Trainer)'],
+            'CS': ['Nhân viên hành chính nhân sự (C&B)', 'Giáo vụ trường học', 'Thư ký y khoa', 'Giao dịch viên ngân hàng', 'Lễ tân văn phòng', 'Trợ lý hành chính', 'Nhân viên thu ngân', 'Chuyên viên pháp chế doanh nghiệp', 'Thư ký tòa án', 'Nhân viên đặt phòng (Reservationist)'],
+            'CE': ['Kế toán thuế', 'Kiểm toán viên', 'Chuyên viên mua hàng (Purchasing)', 'Nhân viên xuất nhập khẩu', 'Quản lý cửa hàng bán lẻ', 'Chuyên viên tín dụng', 'Thư ký giám đốc', 'Quản lý chuỗi cung ứng (Supply Chain Manager)', 'Chuyên viên thẩm định giá', 'Quản lý kho vận (Logistics Manager)'],
+
+            // 3-Letter Combinations (Massive Expansion)
+            'IRS': ['Kỹ thuật viên hình ảnh y học (X-quang, MRI)', 'Kỹ sư thiết bị y tế', 'Chuyên gia an toàn vệ sinh thực phẩm', 'Giảng viên kỹ thuật nghề', 'Nhà nông học công nghệ cao', 'Kỹ thuật viên sinh học', 'Chuyên gia quản lý rừng', 'Bác sĩ y học dự phòng', 'Huấn luyện viên phục hồi chức năng'],
+            'AIR': ['Kiến trúc sư quy hoạch đô thị', '3D Artist (Game/Phim)', 'Kỹ sư thiết kế công nghiệp', 'Nhiếp ảnh gia kiến trúc/nội thất', 'Nhà phục chế tác phẩm nghệ thuật', 'Thiết kế trang sức 3D', 'Chuyên gia vẽ bản đồ số', 'Kỹ sư âm thanh phòng thu', 'Nhà khảo cổ học thực địa'],
+            'EIR': ['Kỹ sư trưởng (Chief Engineer)', 'Giám đốc công nghệ (CTO)', 'Quản lý dự án IT (IT PM)', 'Chủ doanh nghiệp công nghệ (Tech Founder)', 'Tư vấn giải pháp phần mềm (Presales)', 'Quản lý sản phẩm kỹ thuật', 'Kỹ sư bán hàng dự án (Project Sales)', 'Chuyên gia chuyển đổi số', 'Quản lý vận hành hệ thống'],
+            'CIR': ['DevOps Engineer', 'System Admin (Quản trị hệ thống)', 'Kỹ sư cầu nối (BrSE)', 'Chuyên gia bảo mật mạng (Pentester)', 'Kỹ sư dữ liệu (Data Engineer)', 'Chuyên gia Blockchain', 'Kiểm thử phần mềm tự động (Automation Tester)', 'Lập trình viên nhúng (Embedded)', 'Chuyên gia điện toán đám mây (Cloud Architect)'],
+            'ARS': ['Giáo viên dạy nghề (Nấu ăn, Pha chế, May mặc)', 'Huấn luyện viên thể hình cá nhân (PT)', 'Chuyên gia trang điểm (Makeup Artist)', 'Thợ cắm hoa nghệ thuật', 'Nghệ nhân cây cảnh', 'Thiết kế trang phục biểu diễn', 'Hướng dẫn viên du lịch sinh thái', 'Chuyên gia trị liệu spa', 'Thợ điêu khắc'],
+            'AER': ['Bếp trưởng điều hành (Executive Chef)', 'Đạo diễn sự kiện/Sân khấu', 'Chủ Studio áo cưới/Nhiếp ảnh', 'Giám đốc nghệ thuật (Art Director)', 'Nhà sản xuất âm nhạc (Music Producer)', 'Doanh nhân thời trang', 'Quản lý nghệ sĩ (Talent Manager)', 'Kiến trúc sư chủ trì', 'Chuyên gia visual merchandising'],
+            'ACR': ['Kỹ thuật viên in ấn công nghiệp', 'Thiết kế kỹ thuật số (Digital Designer)', 'Editor hậu kỳ phim/VFX', 'Chuyên viên thiết kế web (Frontend)', 'Họa sĩ vẽ tranh tường', 'Thiết kế mô hình kiến trúc', 'Chuyên gia chỉnh màu (Colorist)', 'Kỹ thuật viên đài truyền hình', 'Thiết kế biển bảng quảng cáo'],
+            'ERS': ['Quản lý điều hành Tour', 'Chủ quán Cafe/Nhà hàng', 'Đội trưởng đội bảo vệ', 'Quản lý sân golf/gym', 'Quản lý dịch vụ tòa nhà', 'Chủ doanh nghiệp vận tải', 'Quản lý siêu thị', 'Tổ trưởng sản xuất', 'Quản lý sự kiện thể thao'],
+            'CRS': ['Y tá phòng mổ/Hồi sức', 'Kỹ thuật viên xét nghiệm', 'Dược tá/Trợ lý dược', 'Giám sát vệ sinh công nghiệp', 'Kỹ thuật viên nha khoa', 'Nhân viên kiểm soát không lưu', 'Thanh tra giao thông', 'Quản lý bếp ăn công nghiệp', 'Nhân viên lưu trữ bệnh án'],
+            'CER': ['Quản lý chuỗi cung ứng (Supply Chain)', 'Giám sát kho tổng', 'Quản lý vận hành tòa nhà', 'Trưởng phòng vật tư', 'Chuyên viên xuất nhập khẩu (Logistics)', 'Quản lý sản xuất', 'Kế toán trưởng nhà máy', 'Quản lý đội xe', 'Chuyên viên đấu thầu'],
+            'AIS': ['Biên kịch phim/Game', 'Nhà trị liệu ngôn ngữ', 'Giáo viên Ngữ văn/Viết sáng tạo', 'Chuyên gia tâm lý học đường', 'Biên tập viên báo chí', 'Nhà nghiên cứu văn hóa', 'Phiên dịch viên hội nghị', 'Content Lead', 'Chuyên gia UX Research'],
+            'AEI': ['Marketing Manager', 'Brand Manager (Quản trị thương hiệu)', 'Nhà báo điều tra', 'Luật sư sở hữu trí tuệ', 'Chuyên gia hoạch định chiến lược', 'Nhà phân tích xu hướng (Trend Forecaster)', 'Giám đốc nội dung số', 'Chuyên gia tư vấn chính trị', 'Nhà sản xuất tin tức'],
+            'ACI': ['Technical Writer (Người viết tài liệu kỹ thuật)', 'Kiến trúc sư thông tin (IA)', 'Thủ thư số (Digital Librarian)', 'Biên dịch viên kỹ thuật', 'Biên tập viên sách giáo khoa', 'Nhà thiết kế font chữ', 'Chuyên gia SEO Content', 'Quản trị viên nội dung website'],
+            'EIS': ['Giám đốc bệnh viện', 'Hiệu trưởng trường học', 'Quản lý trung tâm ngoại ngữ', 'Trưởng phòng đào tạo (L&D Manager)', 'Chuyên gia tư vấn quản trị nhân sự', 'Luật sư tranh tụng', 'Giám đốc quỹ từ thiện', 'Chuyên gia quan hệ chính phủ (GR)', 'Quản lý dự án xã hội'],
+            'CIS': ['Dược sĩ lâm sàng', 'Chuyên viên thống kê y tế', 'Thủ thư thư viện công cộng', 'Kiểm soát nội bộ', 'Chuyên viên phân tích chính sách', 'Nhà xã hội học', 'Chuyên viên xử lý dữ liệu khảo sát', 'Kế toán công', 'Thanh tra giáo dục'],
+            'CEI': ['Business Analyst (Tài chính/Ngân hàng)', 'Chuyên gia quản trị rủi ro', 'Kiểm toán viên IT', 'Chuyên viên phân tích đầu tư', 'Chuyên gia tính phí bảo hiểm', 'Quản trị viên hệ thống thông tin quản lý (MIS)', 'Chuyên viên thuế cao cấp', 'Nhà phân tích dữ liệu kinh doanh (BI)'],
+            'AES': ['MC/Người dẫn chương trình', 'Chuyên viên PR & Truyền thông', 'Giáo viên năng khiếu (Nhạc, Họa, Múa)', 'Chuyên viên quan hệ công chúng', 'Đại diện bán hàng thời trang/mỹ phẩm', 'Huấn luyện viên kỹ năng mềm', 'Nhà hoạt động xã hội (Campaigner)', 'Giám đốc đối ngoại'],
+            'ACS': ['Giáo viên tiểu học', 'Thư viện viên trường học', 'Biên tập viên sách', 'Trợ lý trường học', 'Nhân viên văn phòng công chứng', 'Thư ký tòa soạn', 'Giáo viên dạy nghề thủ công', 'Nhân viên quản lý hồ sơ du học'],
+            'ACE': ['Giám đốc truyền thông', 'Content Manager', 'Account Director (Agency)', 'Chủ Agency quảng cáo', 'Nhà sản xuất chương trình giải trí', 'Giám đốc nghệ thuật tạp chí', 'Quản lý chiến dịch quảng cáo', 'Chuyên gia tổ chức sự kiện doanh nghiệp'],
+            'CES': ['Trưởng phòng C&B (Lương thưởng & Phúc lợi)', 'Quản lý quan hệ khách hàng (CRM)', 'Đại lý du lịch/Vé máy bay', 'Tư vấn tài chính cá nhân', 'Quản lý phòng giao dịch ngân hàng', 'Trưởng nhóm Telesale', 'Chuyên viên tư vấn bảo hiểm nhân thọ', 'Quản lý văn phòng luật']
+        };
+
+        const songStructure = [
+            { name: 'INTRO', bars: 4, type: 'low' },
+            { name: 'VERSE 1', bars: 8, type: 'med' },
+            { name: 'PRE-CHORUS 1', bars: 4, type: 'build' },
+            { name: 'CHORUS', bars: 8, type: 'high' },
+            { name: 'VERSE 2', bars: 8, type: 'med' },
+            { name: 'PRE-CHORUS 2', bars: 4, type: 'build' },
+            { name: 'CHORUS 2', bars: 8, type: 'high' },
+            { name: 'BRIDGE', bars: 8, type: 'special' },
+            { name: 'OUTRO', bars: 4, type: 'fade' }
+        ];
+
+        const harmonyMap = {
+            0: { root: 130.81, third: 155.56, fifth: 196.00, seventh: 233.08, type: 'Cm7' },   
+            1: { root: 103.83, third: 130.81, fifth: 155.56, seventh: 185.00, type: 'AbMaj7' }, 
+            2: { root: 155.56, third: 196.00, fifth: 233.08, seventh: 277.18, type: 'EbMaj7' }, 
+            3: { root: 116.54, third: 146.83, fifth: 174.61, seventh: 207.65, type: 'Bb7' }     
+        };
+
+        const conclusions = {
+            'Emotional': {
+                title: "Người Giàu Cảm Xúc & Thấu Cảm",
+                music: "Bản giao hưởng của bạn trôi chảy với những giai điệu du dương, mềm mại và giàu tính tượng hình. Sự kết hợp giữa các nhạc cụ thiên về không khí và sự ấm áp tạo nên một không gian âm nhạc chữa lành.",
+                human: "Điều này phản chiếu bạn là người có chỉ số trí tuệ cảm xúc (EQ) cao, nhạy cảm và tinh tế. Bạn lắng nghe người khác không chỉ bằng tai mà bằng cả trái tim, luôn tìm kiếm sự kết nối sâu sắc.",
+                advice: "Hãy trân trọng sự nhạy cảm của mình như một món quà. Tuy nhiên, đôi khi bạn cũng cần học cách thiết lập ranh giới cảm xúc."
+            },
+            'Energetic': {
+                title: "Người Tiên Phong & Năng Động",
+                music: "Bản nhạc mang nhịp điệu dồn dập, mạnh mẽ và đầy uy lực. Tiếng trống giữ nhịp và kèn đồng vang dội tạo nên những cú hích âm thanh dứt khoát. Đây là âm nhạc của hành động.",
+                human: "Bạn mang trong mình ngọn lửa nhiệt huyết của một nhà lãnh đạo thực thụ. Bạn thực tế, hướng ngoại và không ngại va chạm. Với bạn, cuộc sống là một sàn diễn nơi bạn phải luôn tiến về phía trước.",
+                advice: "Năng lượng của bạn là nguồn cảm hứng lớn. Hãy thử chậm lại một chút để quan sát kỹ hơn những chi tiết nhỏ mà tốc độ nhanh khiến bạn bỏ lỡ."
+            },
+            'Intellectual': {
+                title: "Người Tư Duy & Sáng Tạo Logic",
+                music: "Tác phẩm của bạn là một cấu trúc chặt chẽ, lớp lang và đầy tính toán. Sự đan xen giữa các vòng lặp trật tự và những giai điệu tìm tòi tạo nên vẻ đẹp của trí tuệ—không ồn ào nhưng cực kỳ thâm sâu.",
+                human: "Bạn là mẫu người của tư duy độc lập và logic. Bạn nhìn thế giới qua lăng kính phân tích. Sự sáng tạo của bạn không đến từ cảm hứng ngẫu nhiên mà từ nền tảng kiến thức vững chắc.",
+                advice: "Trí tuệ là sức mạnh lớn nhất của bạn. Đôi khi, hãy cho phép bản thân 'phi logic' một chút để tận hưởng những vẻ đẹp ngẫu hứng của cuộc sống."
+            }
+        };
+
+        // --- AUDIO ENGINE: HYBRID OPERA-SEPTET EDITION ---
+        const audioEngine = {
+            ctx: null, master: null, reverb: null, busCompressor: null,
+            tempo: 105, step: 0, nextTime: 0, isPlaying: false,
+            currentBar: 0, sectionIndex: 0,
+            activeGroups: { R:false, I:false, A:false, S:false, E:false, C:false },
+
+            createReverb: function(duration, decay) {
+                const len = this.ctx.sampleRate * duration;
+                const buffer = this.ctx.createBuffer(2, len, this.ctx.sampleRate);
+                for (let c = 0; c < 2; c++) {
+                    const ch = buffer.getChannelData(c);
+                    for (let i = 0; i < len; i++) {
+                        ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+                    }
+                }
+                return buffer;
+            },
+
+            // --- OPERA VOCAL TECH ---
+            applySingersFormant: function(source) {
+                const ring = this.ctx.createBiquadFilter();
+                ring.type = 'peaking'; ring.frequency.value = 3000; ring.Q.value = 3; ring.gain.value = 8;
+                source.connect(ring); return ring;
+            },
+
+            createVocalTract: function(source, vowelType) {
+                // Hybrid Formants (Best of both worlds: Opera Resonance + Clarity)
+                const formants = {
+                    'a': [ {f: 800, db: 0}, {f: 1200, db: -6}, {f: 2800, db: -12} ], // Opera Open 'A'
+                    'o': [ {f: 500, db: 0}, {f: 900, db: -8}, {f: 2500, db: -15} ],  // Opera Deep 'O'
+                    'e': [ {f: 400, db: 0}, {f: 2000, db: -6}, {f: 2800, db: -10} ], // Bright 'E'
+                    'u': [ {f: 350, db: 0}, {f: 800, db: -10}, {f: 2400, db: -20} ],  // Resonant 'U'
+                };
+                const specs = formants[vowelType] || formants['a'];
+                const output = this.ctx.createGain();
+                specs.forEach(spec => {
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'bandpass'; filter.frequency.value = spec.f; filter.Q.value = 4;
+                    const gain = this.ctx.createGain(); gain.gain.value = Math.pow(10, spec.db / 20) * 4;
+                    source.connect(filter); filter.connect(gain); gain.connect(output);
+                });
+                return this.applySingersFormant(output); // Apply the "Singer's Formant" ring
+            },
+
+            init: function() {
+                if (this.ctx) return;
+                const AC = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AC();
+                this.master = this.ctx.createGain(); this.master.gain.value = 0.8;
+                
+                this.busCompressor = this.ctx.createDynamicsCompressor();
+                this.busCompressor.threshold.value = -12; this.busCompressor.ratio.value = 6;
+                
+                this.reverb = this.ctx.createConvolver();
+                this.reverb.buffer = this.createReverb(3.5, 2.5); 
+                const reverbGain = this.ctx.createGain(); reverbGain.gain.value = 0.45;
+                
+                this.master.connect(this.busCompressor);
+                this.busCompressor.connect(this.ctx.destination);
+                this.busCompressor.connect(this.reverb);
+                this.reverb.connect(this.ctx.destination);
+                
+                this.analyser = this.ctx.createAnalyser();
+                this.analyser.fftSize = 256;
+                this.busCompressor.connect(this.analyser);
+                visualizer.init(this.analyser);
+            },
+
+            // --- HYBRID INSTRUMENTS (Septet Layers + Opera Vocals) ---
+            
+            // R: KỸ THUẬT (Kick, Snare, Bass, TENOR CHANT, Hat, Drone, Anvil)
+            playKickR: function(t) { const osc = this.ctx.createOscillator(); osc.frequency.setValueAtTime(150, t); osc.frequency.exponentialRampToValueAtTime(0.01, t + 0.5); const g = this.ctx.createGain(); g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.3); osc.connect(g); g.connect(this.master); osc.start(t); osc.stop(t + 0.5); },
+            playSnareR: function(t) { const noise = this.ctx.createBufferSource(); const bSize = this.ctx.sampleRate; const b = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate); const d = b.getChannelData(0); for(let i=0; i<bSize; i++) d[i] = Math.random()*2-1; noise.buffer = b; const f = this.ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value = 1500; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.7, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.15); noise.connect(f); f.connect(g); g.connect(this.master); noise.start(t); },
+            playBassR: function(t, freq) { const osc = this.ctx.createOscillator(); osc.type = 'triangle'; osc.frequency.value = freq; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.6, t); g.gain.linearRampToValueAtTime(0.5, t+0.1); g.gain.exponentialRampToValueAtTime(0.001, t+0.4); osc.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.5); },
+            playTenorChantR: function(t) { // OPERA STYLE
+                const osc = this.ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(110, t); osc.frequency.exponentialRampToValueAtTime(90, t+0.2); 
+                const noise = this.ctx.createBufferSource(); const bSize = this.ctx.sampleRate * 0.2; const b = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate); const d = b.getChannelData(0); for(let i=0; i<bSize; i++) d[i] = Math.random()*2-1; noise.buffer = b; 
+                const mix = this.ctx.createGain(); mix.gain.value = 0.6; osc.connect(mix); noise.connect(mix); 
+                const throat = this.createVocalTract(mix, 'u'); // Tenor 'Uh'
+                const g = this.ctx.createGain(); g.gain.setValueAtTime(0.5, t); g.gain.linearRampToValueAtTime(0.4, t+0.1); g.gain.exponentialRampToValueAtTime(0.001, t+0.3); 
+                throat.connect(g); g.connect(this.master); osc.start(t); noise.start(t); osc.stop(t+0.35); noise.stop(t+0.35); 
+            },
+            playHatR: function(t) { const bSize = this.ctx.sampleRate * 0.05; const b = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate); const d = b.getChannelData(0); for(let i=0; i<bSize; i++) d[i] = Math.random()*2-1; const n = this.ctx.createBufferSource(); n.buffer=b; const f=this.ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=6000; const g=this.ctx.createGain(); g.gain.setValueAtTime(0.3,t); g.gain.exponentialRampToValueAtTime(0.001, t+0.05); n.connect(f); f.connect(g); g.connect(this.master); n.start(t); },
+            playDroneR: function(t) { const osc = this.ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = 55; const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 100; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.2, t); g.gain.linearRampToValueAtTime(0, t+4); osc.connect(f); f.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+4); },
+            playAnvilR: function(t) { const osc = this.ctx.createOscillator(); osc.type = 'square'; osc.frequency.value = 800; const osc2 = this.ctx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 1200; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.2); osc.connect(g); osc2.connect(g); g.connect(this.reverb); g.connect(this.master); osc.start(t); osc2.start(t); osc.stop(t+0.2); osc2.stop(t+0.2); },
+            playBassVocR: function(t, freq) { const osc = this.ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = freq / 2; const throat = this.createVocalTract(osc, 'u'); const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3, t+0.1); g.gain.linearRampToValueAtTime(0, t+0.5); throat.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.5); },
+            playBreathR: function(t) {
+                const noise = this.ctx.createBufferSource(); const b = this.ctx.createBuffer(1, 15000, 44100); b.getChannelData(0).forEach((v,i,a)=>a[i]=Math.random()*2-1); noise.buffer=b;
+                const f = this.ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=500;
+                const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.4, t+0.1); g.gain.exponentialRampToValueAtTime(0.001, t+0.3);
+                noise.connect(f); f.connect(g); g.connect(this.master); noise.start(t);
+            },
+
+            // I: NGHIÊN CỨU (Arp, OPERA SOPRANO, Marimba, Glitch, Sonar, Chops, Vocoder)
+            playArpI: function(t, freq) { const carrier = this.ctx.createOscillator(); carrier.frequency.value = freq; const mod = this.ctx.createOscillator(); mod.frequency.value = freq * 2.0; const modGain = this.ctx.createGain(); modGain.gain.value = 300; mod.connect(modGain); modGain.connect(carrier.frequency); const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.4); carrier.connect(g); g.connect(this.master); carrier.start(t); mod.start(t); carrier.stop(t+0.5); mod.stop(t+0.5); },
+            playOperaSopranoI: function(t, freq) { // OPERA STYLE
+                const osc = this.ctx.createOscillator(); osc.type = 'triangle'; osc.frequency.value = freq * 4; 
+                const vib = this.ctx.createOscillator(); vib.frequency.value = 5.0; const vibGain = this.ctx.createGain(); vibGain.gain.value = 15; 
+                vib.connect(vibGain); vibGain.connect(osc.frequency); vib.start(t); vib.stop(t+4); 
+                const throat = this.createVocalTract(osc, 'o'); // Soprano 'Ooh'
+                const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3, t+0.5); g.gain.linearRampToValueAtTime(0.2, t+2.0); g.gain.linearRampToValueAtTime(0, t+3.8); 
+                throat.connect(g); g.connect(this.reverb); osc.start(t); osc.stop(t+4); 
+            },
+            playMarimbaI: function(t, freq) { const osc = this.ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.3); osc.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.35); },
+            playGlitchI: function(t) { const osc = this.ctx.createOscillator(); osc.type = 'square'; osc.frequency.setValueAtTime(2000, t); osc.frequency.exponentialRampToValueAtTime(100, t+0.1); const g = this.ctx.createGain(); g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.1); osc.connect(g); g.connect(this.reverb); osc.start(t); osc.stop(t+0.1); },
+            playSonarI: function(t) { const osc = this.ctx.createOscillator(); osc.type='sine'; osc.frequency.value = 1500; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.15, t); g.gain.exponentialRampToValueAtTime(0.001, t+1.5); osc.connect(g); g.connect(this.reverb); osc.start(t); osc.stop(t+2); },
+            playChopsI: function(t, freq) { const osc = this.ctx.createOscillator(); osc.type='square'; osc.frequency.value = freq*2; const throat = this.createVocalTract(osc, 'e'); const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t+0.02); g.gain.exponentialRampToValueAtTime(0.001, t+0.1); throat.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.15); },
+            playVocoderI: function(t, chord) {
+                [chord.third*2, chord.seventh*2].forEach(f => {
+                    const osc = this.ctx.createOscillator(); osc.type='sawtooth'; osc.frequency.value = f;
+                    const filter = this.ctx.createBiquadFilter(); filter.type='bandpass'; filter.frequency.value = f; filter.Q.value=10;
+                    const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.1, t+0.1); g.gain.linearRampToValueAtTime(0, t+0.8);
+                    osc.connect(filter); filter.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.8);
+                });
+            },
+
+            // A: NGHỆ THUẬT (Pad, Lead, ETHEREAL WHISPER, Chimes, Swell, Harp, Aria, Siren)
+            playPadA: function(t, chord) { const freq = chord; [0.995, 1.005].forEach(detune => { const osc = this.ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = freq * detune; const filter = this.ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 600; filter.frequency.setValueAtTime(600, t); filter.frequency.linearRampToValueAtTime(1200, t + 1.5); filter.frequency.linearRampToValueAtTime(400, t + 3.0); const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.15, t+1.0); g.gain.linearRampToValueAtTime(0, t+3.5); osc.connect(filter); filter.connect(g); g.connect(this.reverb); osc.start(t); osc.stop(t+4.0); }); },
+            playLeadA: function(t, freq) { const osc = this.ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = freq; const vib = this.ctx.createOscillator(); vib.frequency.value = 5; const vibG = this.ctx.createGain(); vibG.gain.value = 5; vib.connect(vibG); vibG.connect(osc.frequency); const filter = this.ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value = 2000; const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t+0.2); g.gain.linearRampToValueAtTime(0, t+1.0); osc.connect(filter); filter.connect(g); g.connect(this.reverb); osc.start(t); vib.start(t); osc.stop(t+1.2); vib.stop(t+1.2); },
+            playEtherealWhisperA: function(t) { // OPERA/AIR STYLE
+                const bSize = this.ctx.sampleRate * 3; const b = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate); const d = b.getChannelData(0); var lastOut = 0; for(let i=0; i<bSize; i++) { const white = Math.random() * 2 - 1; d[i] = (lastOut + (0.02 * white)) / 1.02; lastOut = d[i]; d[i] *= 3.5; } const n = this.ctx.createBufferSource(); n.buffer = b; 
+                const f = this.ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 2; f.frequency.setValueAtTime(400, t); f.frequency.linearRampToValueAtTime(1200, t+2.0); 
+                const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.15, t+1.5); g.gain.linearRampToValueAtTime(0, t+3.0); 
+                n.connect(f); f.connect(g); g.connect(this.reverb); n.start(t); 
+            },
+            playChimesA: function(t, baseFreq) { for(let i=0; i<5; i++) { const osc = this.ctx.createOscillator(); osc.type='sine'; osc.frequency.value = baseFreq * (2 + (Math.random()*2)); const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.1, t + (Math.random()*0.5)); g.gain.exponentialRampToValueAtTime(0.001, t + 2 + Math.random()); osc.connect(g); g.connect(this.reverb); osc.start(t); osc.stop(t+4); } },
+            playSwellA: function(t) { const noise = this.ctx.createBufferSource(); const b = this.ctx.createBuffer(1, 44100, 44100); b.getChannelData(0).forEach((v,i,a)=>a[i]=Math.random()*2-1); noise.buffer=b; const f = this.ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=200; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.01, t); g.gain.exponentialRampToValueAtTime(0.3, t+1); g.gain.setValueAtTime(0, t+1.05); noise.connect(f); f.connect(g); g.connect(this.reverb); noise.start(t); },
+            playHarpA: function(t, freq) { const osc = this.ctx.createOscillator(); osc.type = 'triangle'; osc.frequency.value = freq; const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t+0.05); g.gain.exponentialRampToValueAtTime(0.001, t+1.0); osc.connect(g); g.connect(this.reverb); osc.start(t); osc.stop(t+1.0); },
+            playAriaA: function(t, freq) { const osc = this.ctx.createOscillator(); osc.type='sine'; osc.frequency.value = freq*2; const vib = this.ctx.createOscillator(); vib.frequency.value = 6; const vibG = this.ctx.createGain(); vibG.gain.value = 15; vib.connect(vibG); vibG.connect(osc.frequency); const throat = this.createVocalTract(osc, 'a'); const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.25, t+1); g.gain.linearRampToValueAtTime(0, t+3); throat.connect(g); g.connect(this.reverb); osc.start(t); vib.start(t); osc.stop(t+3); vib.stop(t+3); },
+            playSirenA: function(t, freq) {
+                const osc = this.ctx.createOscillator(); osc.type='sine'; osc.frequency.setValueAtTime(freq*4, t); osc.frequency.linearRampToValueAtTime(freq*3, t+2);
+                const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.1, t+1); g.gain.linearRampToValueAtTime(0, t+4);
+                osc.connect(g); g.connect(this.reverb); osc.start(t); osc.stop(t+4);
+            },
+
+            // S: XÃ HỘI (GRAND OPERA CHOIR, Ukulele, Shaker, Claps, Crowd, Whistle, Backing)
+            playGrandChoirS: function(t, chord) { // OPERA STYLE
+                const notes = [chord.root, chord.third, chord.fifth]; 
+                notes.forEach((freq, idx) => { 
+                    [0.995, 1.0, 1.005].forEach(detune => { 
+                        const osc = this.ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = freq * detune; 
+                        const vib = this.ctx.createOscillator(); vib.frequency.value = 4.5 + Math.random(); 
+                        const vibG = this.ctx.createGain(); vibG.gain.value = 3; vib.connect(vibG); vibG.connect(osc.frequency); vib.start(t); vib.stop(t+4.0); 
+                        const throat = this.createVocalTract(osc, 'a'); 
+                        const env = this.ctx.createGain(); env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(0.05, t + 0.8); env.gain.linearRampToValueAtTime(0.04, t + 3.0); env.gain.exponentialRampToValueAtTime(0.001, t + 4.0); 
+                        throat.connect(env); env.connect(this.master); env.connect(this.reverb); osc.start(t); osc.stop(t + 4.0); 
+                    }); 
+                }); 
+            },
+            playUkeS: function(t, freq) { const osc = this.ctx.createOscillator(); osc.type = 'triangle'; osc.frequency.value = freq; const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.25, t+0.02); g.gain.exponentialRampToValueAtTime(0.001, t+0.3); const f = this.ctx.createBiquadFilter(); f.type='peaking'; f.frequency.value = 800; f.gain.value = 5; osc.connect(f); f.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.35); },
+            playShakerS: function(t) { const bSize = this.ctx.sampleRate * 0.1; const b = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate); const d = b.getChannelData(0); for(let i=0; i<bSize; i++) d[i] = Math.random()*2-1; const n = this.ctx.createBufferSource(); n.buffer = b; const f = this.ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value = 6000; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.05, t); g.gain.linearRampToValueAtTime(0.1, t+0.01); g.gain.linearRampToValueAtTime(0, t+0.05); n.connect(f); f.connect(g); g.connect(this.master); n.start(t); },
+            playClapsS: function(t) { const makeClap = (time) => { const noise = this.ctx.createBufferSource(); const b = this.ctx.createBuffer(1, 4000, 44100); b.getChannelData(0).forEach((v,i,a)=>a[i]=Math.random()*2-1); noise.buffer=b; const f = this.ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1200; f.Q.value=1; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.2, time); g.gain.exponentialRampToValueAtTime(0.001, time+0.1); noise.connect(f); f.connect(g); g.connect(this.master); g.connect(this.reverb); noise.start(time); }; for(let i=0; i<3; i++) makeClap(t + (Math.random()*0.02)); },
+            playCrowdS: function(t) { const noise = this.ctx.createBufferSource(); const b = this.ctx.createBuffer(1, 88200, 44100); b.getChannelData(0).forEach((v,i,a)=>a[i]=Math.random()*2-1); noise.buffer=b; const f = this.ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=400; const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.08, t+1); g.gain.linearRampToValueAtTime(0, t+4); noise.connect(f); f.connect(g); g.connect(this.reverb); noise.start(t); },
+            playWhistleS: function(t, freq) { const osc = this.ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq * 2; const vib = this.ctx.createOscillator(); vib.frequency.value = 6; const vibG = this.ctx.createGain(); vibG.gain.value = 10; vib.connect(vibG); vibG.connect(osc.frequency); const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.15, t+0.1); g.gain.linearRampToValueAtTime(0, t+0.3); osc.connect(g); g.connect(this.reverb); osc.start(t); vib.start(t); osc.stop(t+0.35); vib.stop(t+0.35); },
+            playHarmonyS: function(t, chord) { [chord.third, chord.fifth].forEach(f => { const osc = this.ctx.createOscillator(); osc.type='triangle'; osc.frequency.value = f; const throat = this.createVocalTract(osc, 'o'); const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.1, t+1); g.gain.linearRampToValueAtTime(0, t+3); throat.connect(g); g.connect(this.reverb); osc.start(t); osc.stop(t+3); }); },
+            playResponseS: function(t, chord) {
+                const osc = this.ctx.createOscillator(); osc.type='square'; osc.frequency.value = chord.fifth * 2;
+                const throat = this.createVocalTract(osc, 'e');
+                const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.1, t+0.2); g.gain.linearRampToValueAtTime(0, t+1.0);
+                throat.connect(g); g.connect(this.reverb); osc.start(t); osc.stop(t+1.0);
+            },
+
+            // E: QUẢN LÝ (Brass, Power Chord, Stomp, BARITONE SHOUT, OrchHit, Gavel, Timpani)
+            playBrassSectionE: function(t, chord) { const freqs = [chord.root, chord.fifth, chord.root * 2]; freqs.forEach((f, i) => { const osc1 = this.ctx.createOscillator(); osc1.type = 'sawtooth'; osc1.frequency.value = f; const osc2 = this.ctx.createOscillator(); osc2.type = 'sawtooth'; osc2.frequency.value = f * 1.008; const filter = this.ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.Q.value = 2; filter.frequency.setValueAtTime(f, t); filter.frequency.linearRampToValueAtTime(f * 3.5, t + 0.05); filter.frequency.exponentialRampToValueAtTime(f, t + 0.3); const amp = this.ctx.createGain(); amp.gain.setValueAtTime(0, t); amp.gain.linearRampToValueAtTime(0.25 / (i+1), t + 0.02); amp.gain.exponentialRampToValueAtTime(0.001, t + 0.4); osc1.connect(filter); osc2.connect(filter); filter.connect(amp); amp.connect(this.master); amp.connect(this.reverb); osc1.start(t); osc2.start(t); osc1.stop(t+0.5); osc2.stop(t+0.5); }); },
+            playPowerChordE: function(t, rootFreq) { const oscRoot = this.ctx.createOscillator(); oscRoot.type = 'sawtooth'; oscRoot.frequency.value = rootFreq; const oscFifth = this.ctx.createOscillator(); oscFifth.type = 'sawtooth'; oscFifth.frequency.value = rootFreq * 1.5; const dist = this.ctx.createWaveShaper(); const k = 100; const n_samples = 44100; const curve = new Float32Array(n_samples); for (let i=0; i<n_samples; ++i ) { const x = i * 2 / n_samples - 1; curve[i] = ( 3 + k ) * x * 20 * ( Math.PI / 180 ) / ( Math.PI + k * Math.abs(x) ); } dist.curve = curve; dist.oversample = '4x'; const cabSim = this.ctx.createBiquadFilter(); cabSim.type = 'lowpass'; cabSim.frequency.value = 2500; const amp = this.ctx.createGain(); amp.gain.setValueAtTime(0, t); amp.gain.linearRampToValueAtTime(0.3, t + 0.05); amp.gain.exponentialRampToValueAtTime(0.001, t + 0.8); oscRoot.connect(dist); oscFifth.connect(dist); dist.connect(cabSim); cabSim.connect(amp); amp.connect(this.master); oscRoot.start(t); oscFifth.start(t); oscRoot.stop(t+1.0); oscFifth.stop(t+1.0); },
+            playStompE: function(t) { const osc = this.ctx.createOscillator(); osc.frequency.setValueAtTime(100, t); osc.frequency.exponentialRampToValueAtTime(20, t + 0.3); const noise = this.ctx.createBufferSource(); const bSize = this.ctx.sampleRate * 0.2; const b = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate); const d = b.getChannelData(0); for(let i=0; i<bSize; i++) d[i] = Math.random()*2-1; noise.buffer = b; const noiseFilter = this.ctx.createBiquadFilter(); noiseFilter.type = 'lowpass'; noiseFilter.frequency.value = 400; const amp = this.ctx.createGain(); amp.gain.setValueAtTime(1.0, t); amp.gain.exponentialRampToValueAtTime(0.01, t + 0.4); osc.connect(amp); noise.connect(noiseFilter); noiseFilter.connect(amp); amp.connect(this.master); amp.connect(this.reverb); osc.start(t); osc.stop(t+0.5); noise.start(t); },
+            playBaritoneShoutE: function(t) { // OPERA STYLE
+                const osc = this.ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = 220; osc.frequency.linearRampToValueAtTime(200, t+0.2); 
+                const throat = this.createVocalTract(osc, 'e'); 
+                const dist = this.ctx.createWaveShaper(); const n = 44100; const curve = new Float32Array(n); const deg = Math.PI / 180; for (let i = 0; i < n; ++i) { const x = i * 2 / n - 1; curve[i] = (3 + 15) * x * 20 * deg / (Math.PI + 15 * Math.abs(x)); } dist.curve = curve; 
+                const g = this.ctx.createGain(); g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.3); 
+                throat.connect(dist); dist.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.35); 
+            },
+            playOrchHitE: function(t) { const oscs = [1, 1.5, 2, 2.5].map(m => { const o = this.ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 110 * m; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.15, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.4); o.connect(g); g.connect(this.master); g.connect(this.reverb); return o; }); oscs.forEach(o => { o.start(t); o.stop(t+0.5); }); },
+            playGavelE: function(t) { const osc = this.ctx.createOscillator(); osc.frequency.setValueAtTime(800, t); osc.frequency.exponentialRampToValueAtTime(50, t+0.1); const g = this.ctx.createGain(); g.gain.setValueAtTime(0.8, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.15); osc.connect(g); g.connect(this.reverb); osc.start(t); osc.stop(t+0.2); },
+            playTimpaniE: function(t) { const osc = this.ctx.createOscillator(); osc.frequency.setValueAtTime(100, t); osc.frequency.exponentialRampToValueAtTime(60, t+0.3); const g = this.ctx.createGain(); g.gain.setValueAtTime(0.6, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.5); osc.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.6); },
+            playCheerE: function(t) {
+                const noise = this.ctx.createBufferSource(); const b = this.ctx.createBuffer(1, 20000, 44100); b.getChannelData(0).forEach((v,i,a)=>a[i]=Math.random()*2-1); noise.buffer=b;
+                const f = this.ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1000; f.Q.value=1;
+                const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t+0.1); g.gain.linearRampToValueAtTime(0, t+0.4);
+                noise.connect(f); f.connect(g); g.connect(this.reverb); noise.start(t);
+            },
+
+            // C: NGHIỆP VỤ (Woodblock, Clarinet, STEADY HUM, Pizz, Clock, Typewriter, Beatbox, Tsk)
+            playWoodblockC: function(t) { const osc = this.ctx.createOscillator(); osc.frequency.value = 800; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.05); osc.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.06); },
+            playClarinetC: function(t, freq) { const osc = this.ctx.createOscillator(); osc.type = 'square'; osc.frequency.value = freq; const f = this.ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value = 1200; const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t+0.05); g.gain.linearRampToValueAtTime(0.2, t+0.3); g.gain.exponentialRampToValueAtTime(0.001, t+0.4); osc.connect(f); f.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.5); },
+            playSteadyHumC: function(t, freq) { // OPERA STYLE
+                const osc = this.ctx.createOscillator(); osc.type = 'triangle'; osc.frequency.value = freq; 
+                const throat = this.createVocalTract(osc, 'u'); // Closed 'Uh'
+                const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 300; // Closed mouth
+                const g = this.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3, t+0.05); g.gain.linearRampToValueAtTime(0.3, t+0.2); g.gain.linearRampToValueAtTime(0, t+0.25); 
+                throat.connect(f); f.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.3); 
+            },
+            playPizzC: function(t, freq) { const osc = this.ctx.createOscillator(); osc.type='square'; osc.frequency.value = freq; const f = this.ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value = 800; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.1); osc.connect(f); f.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.15); },
+            playClockC: function(t) { const osc = this.ctx.createOscillator(); osc.type='square'; osc.frequency.value = 2000; const f = this.ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=1500; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.03); osc.connect(f); f.connect(g); g.connect(this.master); osc.start(t); osc.stop(t+0.04); },
+            playTypewriterC: function(t) { const noise = this.ctx.createBufferSource(); const b = this.ctx.createBuffer(1, 2000, 44100); b.getChannelData(0).forEach((v,i,a)=>a[i]=Math.random()*2-1); noise.buffer=b; const f = this.ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=2000; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.05); noise.connect(f); f.connect(g); g.connect(this.master); noise.start(t); },
+            playBeatboxC: function(t) { const noise = this.ctx.createBufferSource(); const b = this.ctx.createBuffer(1, 3000, 44100); b.getChannelData(0).forEach((v,i,a)=>a[i]=Math.random()*2-1); noise.buffer=b; const f = this.ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1000; const g = this.ctx.createGain(); g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.08); noise.connect(f); f.connect(g); g.connect(this.master); noise.start(t); },
+            playTskC: function(t) {
+                const noise = this.ctx.createBufferSource(); const b = this.ctx.createBuffer(1, 1000, 44100); b.getChannelData(0).forEach((v,i,a)=>a[i]=Math.random()*2-1); noise.buffer=b;
+                const f = this.ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=4000;
+                const g = this.ctx.createGain(); g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.02);
+                noise.connect(f); f.connect(g); g.connect(this.master); noise.start(t);
+            },
+
+            // --- STRUCTURED SEQUENCER ---
+            schedule: function(step, t) {
+                const s = step % 32;
+                const bar = Math.floor(s/8) % 4;
+                const harm = harmonyMap[bar];
+                const section = songStructure[this.sectionIndex];
+                const type = section.type;
+                const h = () => t + (Math.random() * 0.02);
+                const strict = () => t;
+
+                // --- GROUP R ---
+                if (this.activeGroups.R) {
+                    if (type === 'high' || type === 'build') { 
+                        if (s%4 === 0) this.playKickR(strict()); 
+                        if (s%8 === 4) this.playSnareR(strict()); 
+                        if (s%2 === 0) { this.playBassR(strict(), harm.root / 2); this.playHatR(strict()); }
+                        if (type==='high' && s%8 === 4) this.playTenorChantR(h()); // REPLACED WITH OPERA CHANT
+                        if (s%8 === 0) this.playAnvilR(h());
+                        if (s%4 === 0) this.playBassVocR(h(), harm.root/2);
+                        if (type === 'high' && s%2 !== 0) this.playBreathR(h()); 
+                    } else if (type === 'med') { 
+                        if (s%4 === 0) this.playKickR(strict());
+                        if (s%8 === 4) this.playSnareR(strict());
+                        if (s%4 === 0) this.playBassR(strict(), harm.root / 2);
+                        if (s%4 === 2) this.playHatR(strict());
+                    }
+                    if (s === 0 && (type === 'med' || type === 'high')) this.playDroneR(t);
+                }
+
+                // --- GROUP I ---
+                if (this.activeGroups.I) {
+                    const arpNotes = [harm.root, harm.third, harm.fifth, harm.root*2];
+                    if (type === 'high' || type === 'special') {
+                        if (s%16 === 0) this.playOperaSopranoI(h(), harm.root * 4); // REPLACED WITH OPERA SOPRANO
+                        if (s%2 === 0) this.playArpI(h(), arpNotes[(s/2)%4] * 2);
+                        if (s%4 !== 0) this.playMarimbaI(strict(), arpNotes[(s)%4] * 4);
+                        if (s===0 || s===16) this.playSonarI(t);
+                        if (s%4 === 2) this.playChopsI(h(), harm.fifth*4);
+                        if (type==='high' && s%8 === 0) this.playVocoderI(t, harm);
+                    } else if (type === 'med' || type === 'build') {
+                        if (s%2 === 0) this.playArpI(h(), arpNotes[(s/2)%4] * 2);
+                    }
+                    if ((type === 'build' || type === 'special') && Math.random() > 0.8) this.playGlitchI(h());
+                }
+
+                // --- GROUP A ---
+                if (this.activeGroups.A) {
+                    if (s === 0 || s === 16) this.playPadA(h(), harm.root);
+                    if (type === 'high' || type === 'special') {
+                        if (Math.random() > 0.6 && s%4!==0) { const note = (Math.random() > 0.5) ? harm.third : harm.fifth; this.playLeadA(h(), note * 2); }
+                        if (Math.random() > 0.9) this.playHarpA(h(), harm.root*4);
+                        if (s%16 === 8) this.playAriaA(h(), harm.root*4);
+                    }
+                    if (type === 'low' || type === 'special') {
+                        if (s%32 === 24) this.playEtherealWhisperA(h()); // REPLACED WITH ETHEREAL WHISPER
+                        if (Math.random() > 0.8) this.playChimesA(h(), harm.root*4);
+                        if (s === 0) this.playSirenA(h(), harm.root*4); 
+                    }
+                    if ((type === 'build' || type === 'med') && s === 28) this.playSwellA(strict());
+                }
+
+                // --- GROUP S ---
+                if (this.activeGroups.S) {
+                    const swing = 0.04; const time = (s%2===1) ? h() + swing : h();
+                    if (type !== 'low' && type !== 'fade') {
+                         if (s%4 === 2) this.playUkeS(time, harm.root * 2);
+                         if (s%4 === 3) this.playUkeS(time, harm.third * 2);
+                         if (s%2 === 0) this.playShakerS(time);
+                         if (type === 'high' && s%8 === 4) this.playClapsS(time);
+                         if (type === 'high' && s%16 === 8) this.playWhistleS(time, harm.fifth * 2);
+                    }
+                    if (type === 'high' || type === 'med') {
+                        if (s === 0 || s === 16) this.playGrandChoirS(h(), harm); // REPLACED WITH GRAND CHOIR
+                        if (s%8 === 0) this.playHarmonyS(h(), harm);
+                        if (type === 'high' && s%16 === 4) this.playResponseS(h(), harm); 
+                    }
+                    if ((type === 'special' || type === 'high') && s === 0) this.playCrowdS(t);
+                }
+
+                // --- GROUP E ---
+                if (this.activeGroups.E) {
+                    if (type === 'high') {
+                        if (s === 0 || s === 16) { this.playStompE(h()); this.playBrassSectionE(h(), harm); this.playBaritoneShoutE(h()); } // REPLACED WITH BARITONE SHOUT
+                        if (s === 6 || s === 22) this.playBrassSectionE(h(), harm);
+                        if (s%8 === 0 || s%8 === 3 || s%8 === 6) this.playPowerChordE(h(), harm.root / 2);
+                        if (s === 0) this.playOrchHitE(h());
+                        if (s%8 === 0) this.playTimpaniE(h());
+                        if (s%16 === 8) this.playBaritoneShoutE(h());
+                        if (s%4 === 0) this.playCheerE(h()); 
+                    } else if (type === 'build') {
+                        if (s === 0 || s === 16) this.playStompE(h());
+                        if (s%8 === 0) this.playPowerChordE(h(), harm.root / 2);
+                    }
+                    if (type === 'high' && s === 0) this.playGavelE(h());
+                }
+
+                // --- GROUP C ---
+                if (this.activeGroups.C) {
+                    if (type === 'med' || type === 'low' || type === 'special') {
+                        if (s%4 === 0) this.playWoodblockC(strict());
+                        if (s%4 === 2) this.playWoodblockC(strict() + 0.05);
+                        if (s%4 === 0) this.playSteadyHumC(strict(), harm.root); // REPLACED WITH STEADY HUM
+                        if (s%2 === 0) this.playPizzC(strict(), harm.root * 2);
+                        if (s%8 === 7) this.playTypewriterC(strict());
+                        if (s%4 === 3) this.playBeatboxC(strict());
+                        if (s%1 === 0) this.playTskC(strict()); 
+                    }
+                    if (type === 'med' || type === 'high') if (s%8 === 0) this.playClarinetC(strict(), harm.root);
+                    if (type === 'med' || type === 'fade' || type === 'low') this.playClockC(strict());
+                }
+            },
+
+            clock: function() {
+                const lookahead = 0.1;
+                while (this.nextTime < this.ctx.currentTime + lookahead) {
+                    this.schedule(this.step, this.nextTime);
+                    this.step++;
+                    if (this.step % 16 === 0) { 
+                        this.currentBar++;
+                        this.updateSection();
+                    }
+                    this.nextTime += (60.0 / this.tempo) / 4;
+                }
+                if (this.isPlaying) requestAnimationFrame(this.clock.bind(this));
+            },
+
+            updateSection: function() {
+                let count = 0;
+                let found = 0;
+                for(let i=0; i<songStructure.length; i++) {
+                    if (this.currentBar < count + songStructure[i].bars) {
+                        found = i; break;
+                    }
+                    count += songStructure[i].bars;
+                }
+                const totalBars = songStructure.reduce((a,b)=>a+b.bars, 0);
+                if (this.currentBar >= totalBars) {
+                     this.toggle(); 
+                     app.showResult();
+                     return;
+                }
+                if (this.sectionIndex !== found) {
+                    this.sectionIndex = found;
+                    app.updateTimelineUI(found);
+                }
+            },
+
+            toggle: function() {
+                if (this.isPlaying) {
+                    this.isPlaying = false;
+                    document.body.classList.remove('playing');
+                    document.getElementById('main-play-btn').innerHTML = '<i class="fas fa-play mr-2"></i> PLAY';
+                    this.currentBar = 0; this.step = 0; this.sectionIndex = 0;
+                } else {
+                    this.init(); 
+                    if (this.ctx.state === 'suspended') this.ctx.resume();
+                    this.isPlaying = true;
+                    this.step = 0; this.currentBar = 0; this.sectionIndex = 0;
+                    this.nextTime = this.ctx.currentTime + 0.1;
+                    this.clock();
+                    document.body.classList.add('playing');
+                    document.getElementById('main-play-btn').innerHTML = '<i class="fas fa-stop mr-2"></i> DỪNG';
+                    app.buildTimeline();
+                }
+            },
+            
+            setGroups: function(groupId, isActive) {
+                this.activeGroups[groupId] = isActive;
+            }
+        };
+
+        const visualizer = {
+            cvs: document.getElementById('visualizer-canvas'),
+            ctx: document.getElementById('visualizer-canvas').getContext('2d'),
+            analyser: null,
+            init: function(anl) { 
+                this.analyser = anl; 
+                this.resize(); 
+                window.onresize = ()=>this.resize(); 
+                this.loop(); 
+            },
+            resize: function() { this.cvs.width=window.innerWidth; this.cvs.height=window.innerHeight; },
+            loop: function() {
+                requestAnimationFrame(()=>this.loop());
+                if(!this.analyser) return;
+                const buf = new Uint8Array(this.analyser.frequencyBinCount);
+                this.analyser.getByteFrequencyData(buf);
+                const w = this.cvs.width, h = this.cvs.height;
+                this.ctx.clearRect(0,0,w,h);
+                
+                const barW = w / 100;
+                for(let i=0; i<100; i++) {
+                    const v = buf[i] / 255;
+                    const barH = v * h * 0.5;
+                    this.ctx.fillStyle = `rgba(${255}, ${200 - v*100}, ${v*255}, ${v})`;
+                    this.ctx.fillRect(i*barW*2 + (w/2) - (100*barW), h - barH, barW, barH);
+                    this.ctx.fillRect((w/2) - (i*barW*2) + (100*barW) - barW*2, h - barH, barW, barH);
+                }
+            }
+        };
+
+        const app = {
+            enterStage: function() {
+                const name = document.getElementById('user-name').value;
+                if(!name) { alert("Xin hãy nhập tên của bạn"); return; }
+                if (!audioEngine.ctx) { audioEngine.init(); } else if (audioEngine.ctx.state === 'suspended') { audioEngine.ctx.resume(); }
+                document.body.classList.add('curtain-open');
+                this.buildTimeline();
+            },
+            toggleGroup: function(groupId) {
+                if (audioEngine.ctx && audioEngine.ctx.state === 'suspended') audioEngine.ctx.resume();
+                const card = document.getElementById(`card-${groupId}`);
+                const isActive = !card.classList.contains('active');
+                card.classList.toggle('active');
+                audioEngine.setGroups(groupId, isActive);
+            },
+            togglePlay: function() { audioEngine.toggle(); },
+            reset: function() {
+                ['R','I','A','S','E','C'].forEach(id => {
+                    document.getElementById('card-'+id).classList.remove('active');
+                    audioEngine.activeGroups[id] = false;
+                });
+                if(audioEngine.isPlaying) audioEngine.toggle();
+                document.getElementById('main-play-btn').innerHTML = '<i class="fas fa-play mr-2"></i> PLAY';
+            },
+            buildTimeline: function() {
+                const container = document.getElementById('structure-timeline');
+                container.innerHTML = '';
+                const track = document.createElement('div'); 
+                track.className = 'timeline-track';
+                
+                songStructure.forEach((section, index) => {
+                    const el = document.createElement('div');
+                    el.className = 'timeline-segment';
+                    el.style.flex = section.bars; 
+                    el.id = `section-${index}`;
+                    const label = document.createElement('div');
+                    label.className = 'timeline-label';
+                    label.innerText = section.name;
+                    el.appendChild(label);
+                    track.appendChild(el);
+                });
+                container.appendChild(track);
+            },
+            updateTimelineUI: function(activeIndex) {
+                songStructure.forEach((s, i) => {
+                    const el = document.getElementById(`section-${i}`);
+                    if (i < activeIndex) {
+                        el.classList.add('passed');
+                        el.classList.remove('active');
+                    } else if (i === activeIndex) {
+                        el.classList.add('active');
+                        el.classList.remove('passed');
+                    } else {
+                        el.classList.remove('active', 'passed');
+                    }
+                });
+            },
+            
+            // --- NEW O*NET COMBINATION LOGIC (Reverted to boolean selection) ---
+            showResult: function() {
+                const name = document.getElementById('user-name').value;
+                document.getElementById('label-name').innerText = name || 'Nhạc trưởng';
+                
+                // 1. Get Active Groups
+                let activeKeys = [];
+                for (const [key, isActive] of Object.entries(audioEngine.activeGroups)) {
+                    if(isActive) activeKeys.push(key);
+                }
+                
+                const analysisTextEl = document.getElementById('analysis-text');
+                const careerGridEl = document.getElementById('career-grid');
+                const conclusionDiv = document.getElementById('conclusion-container');
+                const conclusionContent = document.getElementById('conclusion-content');
+                
+                careerGridEl.innerHTML = '';
+                
+                if (activeKeys.length === 0) {
+                    analysisTextEl.innerHTML = "Bạn chưa chọn nhạc cụ nào. Hãy quay lại và chỉ huy dàn nhạc để khám phá bản thân!";
+                    conclusionDiv.style.display = 'none';
+                    return;
+                }
+
+                // 2. Generate Holland Code String (Sorted Alphabetically for Consistency)
+                activeKeys.sort(); 
+                let codeString = activeKeys.join("");
+                
+                // 3. Find Careers based on Combination
+                let matchedCareers = [];
+                let matchType = "";
+                let matchedUniversities = [];
+
+                // Attempt Exact Match (e.g. 3-letter)
+                if (careerCombinations[codeString]) {
+                    matchedCareers = careerCombinations[codeString];
+                    matchType = `Tổ hợp 3 yếu tố: ${codeString}`;
+                } 
+                // Fallback: If 3 selected but no exact 3-letter match, find best 2-letter pairs
+                else if (activeKeys.length >= 3) {
+                    matchType = `Kết hợp các cặp đôi nổi bật từ ${codeString}`;
+                    for (let i = 0; i < activeKeys.length; i++) {
+                        for (let j = i + 1; j < activeKeys.length; j++) {
+                            let pair = activeKeys[i] + activeKeys[j];
+                            if (careerCombinations[pair]) {
+                                matchedCareers = matchedCareers.concat(careerCombinations[pair]);
+                            }
+                        }
+                    }
+                    matchedCareers = [...new Set(matchedCareers)]; // Deduplicate
+                }
+                // Fallback: If 2 selected
+                else if (activeKeys.length === 2) {
+                    if (careerCombinations[codeString]) {
+                        matchedCareers = careerCombinations[codeString];
+                        matchType = `Tổ hợp 2 yếu tố: ${codeString}`;
+                    } else {
+                        matchType = `Tổ hợp ${codeString}`;
+                    }
+                }
+
+                // 4. FIND UNIVERSITY DATA
+                if (universityCombinations[codeString]) {
+                    matchedUniversities = universityCombinations[codeString];
+                } else if (activeKeys.length >= 2) {
+                    for (let i = 0; i < activeKeys.length; i++) {
+                        for (let j = i + 1; j < activeKeys.length; j++) {
+                            let pair = activeKeys[i] + activeKeys[j];
+                            if (universityCombinations[pair]) {
+                                matchedUniversities = matchedUniversities.concat(universityCombinations[pair]);
+                            }
+                        }
+                    }
+                    matchedUniversities = [...new Set(matchedUniversities)];
+                }
+                
+                // 5. Display Analysis Text
+                let analysisHTML = `<div style="margin-bottom:20px; font-size:1.5rem; color:var(--gold); text-shadow:0 0 10px rgba(255,215,0,0.3);">Mã Holland: <b>${codeString}</b></div>`;
+                analysisHTML += `<div style="margin-bottom:15px; font-style:italic;">Bạn là sự kết hợp của:</div>`;
+                activeKeys.forEach(k => {
+                    analysisHTML += `<div style="margin-bottom:5px;"><span style="color:${personalityData[k].color}; font-weight:800;">${personalityData[k].name}</span> - ${personalityData[k].desc}</div>`;
+                });
+                analysisTextEl.innerHTML = analysisHTML;
+
+                // 6. Display Careers (Prioritize Combination, Fallback to Single)
+                if (matchedCareers.length > 0) {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'career-group';
+                    groupDiv.style.borderLeft = `4px solid var(--gold)`;
+                    groupDiv.style.width = '100%';
+                    
+                    // Generate Clickable Tags
+                    let tagsHTML = matchedCareers.map(c => 
+                        `<span class="career-tag" onclick="app.analyzeCareer('${c}')">${c}</span>`
+                    ).join('');
+                    
+                    // Add Universities Section
+                    let uniHTML = '';
+                    if (matchedUniversities.length > 0) {
+                        uniHTML = `
+                            <div class="university-list">
+                                <div style="font-size:0.8rem; text-transform:uppercase; color:#aaa; margin-bottom:5px;">Trường đào tạo phù hợp:</div>
+                                ${matchedUniversities.map(u => `<span class="university-item"><i class="fas fa-university"></i> ${u}</span>`).join('')}
+                            </div>
+                        `;
+                    }
+
+                    groupDiv.innerHTML = `
+                        <div class="career-group-header" style="color: var(--gold); border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px; margin-bottom:10px;">
+                            <span><i class="fas fa-star"></i></span> ${matchType}
+                        </div>
+                        <div class="career-list-items">${tagsHTML}</div>
+                        ${uniHTML}
+                    `;
+                    careerGridEl.appendChild(groupDiv);
+                } else {
+                    // FALLBACK: Show single careers
+                    activeKeys.forEach(k => {
+                        const data = personalityData[k];
+                        const groupDiv = document.createElement('div');
+                        groupDiv.className = 'career-group';
+                        groupDiv.style.borderLeft = `4px solid ${data.color}`;
+                        let tagsHTML = data.careers.map(c => 
+                            `<span class="career-tag" onclick="app.analyzeCareer('${c}')">${c}</span>`
+                        ).join('');
+                        groupDiv.innerHTML = `<div class="career-group-header" style="color:${data.color}">${data.name} (Đơn lẻ)</div><div class="career-list-items">${tagsHTML}</div>`;
+                        careerGridEl.appendChild(groupDiv);
+                    });
+                }
+
+                // 7. Meta Conclusion
+                const metaScores = {
+                    'Emotional': (audioEngine.activeGroups['A'] ? 1 : 0) + (audioEngine.activeGroups['S'] ? 1 : 0),
+                    'Energetic': (audioEngine.activeGroups['R'] ? 1 : 0) + (audioEngine.activeGroups['E'] ? 1 : 0),
+                    'Intellectual': (audioEngine.activeGroups['I'] ? 1 : 0) + (audioEngine.activeGroups['C'] ? 1 : 0)
+                };
+
+                let dominantMeta = Object.keys(metaScores).reduce((a, b) => metaScores[a] >= metaScores[b] ? a : b);
+                const data = conclusions[dominantMeta];
+                conclusionContent.innerHTML = `
+                    <div style="text-align:center; font-family:'Pinyon Script', cursive; font-size:2rem; color:#d4af37; margin-bottom:20px; text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);">${data.title}</div>
+                    <span class="conclusion-label">Giai điệu phản chiếu:</span><p style="margin-bottom: 15px;">${data.music}</p>
+                    <span class="conclusion-label">Bản ngã con người:</span><p style="margin-bottom: 15px;">${data.human}</p>
+                    <span class="conclusion-label">Lời khuyên dành cho bạn:</span><p style="font-style: italic; color: #fff;">${data.advice}</p>
+                `;
+                conclusionDiv.style.display = 'block';
+
+                document.getElementById('result-overlay').classList.add('active'); 
+                document.body.classList.add('show-result');
+                if(audioEngine.isPlaying) audioEngine.toggle();
+            },
+            replay: function() {
+                document.getElementById('result-overlay').classList.remove('active'); 
+                document.body.classList.remove('show-result');
+            },
+
+            // --- CAREER ANALYSIS SYSTEM ---
+            analyzeCareer: function(careerName) {
+                const modal = document.getElementById('career-modal');
+                const titleEl = document.getElementById('modal-career-title');
+                const impactTextEl = document.getElementById('modal-impact-text');
+                const socialTextEl = document.getElementById('modal-social-text');
+                
+                // Set Title
+                titleEl.innerText = careerName;
+
+                // Generate Metrics (Simulated Logic based on keywords)
+                let popularity = 70, feasibility = 70, future = 70;
+                let impactDesc = "Nghề này có vai trò quan trọng trong hệ thống vận hành chung.";
+                let socialDesc = "Được xã hội đánh giá cao về tính ổn định.";
+
+                const lowerName = careerName.toLowerCase();
+
+                // Logic: Tech & Digital
+                if (lowerName.includes('it') || lowerName.includes('phần mềm') || lowerName.includes('data') || lowerName.includes('số') || lowerName.includes('công nghệ')) {
+                    popularity = 95; feasibility = 60; future = 98; // High demand, hard skills, huge future
+                    impactDesc = "Là nền tảng của chuyển đổi số, ảnh hưởng trực tiếp đến hiệu quả vận hành của mọi ngành nghề khác từ Y tế đến Tài chính.";
+                    socialDesc = "Được coi là 'ngành vua', thu nhập cao và vị thế xã hội hiện đại, năng động.";
+                }
+                // Logic: Creative & Art
+                else if (lowerName.includes('thiết kế') || lowerName.includes('biên tập') || lowerName.includes('sáng tạo') || lowerName.includes('nghệ thuật')) {
+                    popularity = 85; feasibility = 75; future = 80;
+                    impactDesc = "Tạo ra bộ mặt thương hiệu và trải nghiệm người dùng, tác động mạnh mẽ đến cảm xúc và quyết định mua hàng.";
+                    socialDesc = "Được đánh giá cao về sự tự do, phong cách sống thú vị và khả năng truyền cảm hứng.";
+                }
+                // Logic: Health & Medical
+                else if (lowerName.includes('bác sĩ') || lowerName.includes('y tá') || lowerName.includes('dược') || lowerName.includes('y tế')) {
+                    popularity = 90; feasibility = 40; future = 95; // Hard entry
+                    impactDesc = "Tác động trực tiếp đến sự sống và sức khỏe cộng đồng, là mắt xích không thể thiếu trong an sinh xã hội.";
+                    socialDesc = "Nhận được sự tôn trọng tuyệt đối từ cộng đồng, mang giá trị nhân văn sâu sắc.";
+                }
+                // Logic: Business & Management
+                else if (lowerName.includes('quản lý') || lowerName.includes('kinh doanh') || lowerName.includes('marketing') || lowerName.includes('ceo')) {
+                    popularity = 100; feasibility = 50; future = 90;
+                    impactDesc = "Định hướng chiến lược và dòng chảy tài chính, quyết định sự thành bại của tổ chức và tạo ra việc làm.";
+                    socialDesc = "Thường gắn liền với sự thành đạt, quyền lực và khả năng lãnh đạo.";
+                }
+                // Logic: Education & Social
+                else if (lowerName.includes('giáo viên') || lowerName.includes('nhân sự') || lowerName.includes('xã hội')) {
+                    popularity = 80; feasibility = 80; future = 85;
+                    impactDesc = "Xây dựng nền tảng con người, ảnh hưởng lâu dài đến chất lượng nguồn nhân lực tương lai.";
+                    socialDesc = "Được xã hội quý trọng vì tính chất 'trồng người' và sự cống hiến bền bỉ.";
+                }
+
+                // Randomize slightly for variation
+                popularity += Math.floor(Math.random() * 10 - 5);
+                future += Math.floor(Math.random() * 10 - 5);
+
+                // Update UI Bars
+                this.animateBar('bar-pop', 'val-pop', popularity);
+                this.animateBar('bar-feas', 'val-feas', feasibility);
+                this.animateBar('bar-fut', 'val-fut', future);
+
+                // Update Texts
+                impactTextEl.innerText = impactDesc;
+                socialTextEl.innerText = socialDesc;
+
+                modal.classList.add('active');
+            },
+
+            animateBar: function(barId, valId, target) {
+                const bar = document.getElementById(barId);
+                const txt = document.getElementById(valId);
+                bar.style.width = '0%';
+                setTimeout(() => { bar.style.width = target + '%'; }, 100);
+                txt.innerText = target + '%';
+            },
+
+            closeCareerDetail: function() {
+                document.getElementById('career-modal').classList.remove('active');
+            }
+        };
+
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX; const spotlight = document.getElementById('spotlight');
+            const move = (x / window.innerWidth - 0.5) * 30; 
+            spotlight.style.transform = `translateX(calc(-50% + ${move}%)) rotate(${move/2}deg)`;
+        });
+    </script>
+</body>
+</html>
